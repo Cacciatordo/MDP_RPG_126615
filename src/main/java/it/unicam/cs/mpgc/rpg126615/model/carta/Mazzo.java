@@ -37,6 +37,14 @@ public class Mazzo {
         return pilaPesca.size();
     }
 
+    public void ripristinaMazzoCompleto(Mano mano) {
+        pilaPesca.addAll(mano.getCarte());
+        mano.svuota();
+        pilaPesca.addAll(pilaScarti);
+        pilaScarti.clear();
+        Collections.shuffle(pilaPesca);
+    }
+
     private void riciclaScarti() {
         pilaPesca.addAll(pilaScarti);
         pilaScarti.clear();
