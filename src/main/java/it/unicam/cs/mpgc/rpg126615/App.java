@@ -2,10 +2,6 @@ package it.unicam.cs.mpgc.rpg126615;
 
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
-import it.unicam.cs.mpgc.rpg126615.model.carta.CartaBuff;
-import it.unicam.cs.mpgc.rpg126615.model.carta.CartaDebuff;
-import it.unicam.cs.mpgc.rpg126615.model.carta.CartaPesca;
-import it.unicam.cs.mpgc.rpg126615.model.carta.TipoCarta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
@@ -18,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -64,20 +61,10 @@ public class App extends Application {
     private final Label etichettaEroeCombattimento = new Label();
     private final Label etichettaNemicoCombattimento = new Label();
     private final TextArea log = new TextArea();
-    private final HBox pulsantiCarte = new HBox(10);
-    private final Button pulsanteAttacca = new Button("Attacca");
+    private final FlowPane pulsantiCarte = new FlowPane(10, 10);
+    private final Button pulsanteAttacca = new Button("Attacca (1 PA)");
+    private final Button pulsanteTerminaTurno = new Button("Termina turno");
     private final Button pulsanteTorna = new Button("Torna al corridoio");
-
-    private final List<Carta> carteDiProva = List.of(
-            new CartaBuff("Potenziamento Attacco", "Il tuo attacco sale di 10 per lo scontro",
-                    1, TipoCarta.POTENZIAMENTO_ATTACCO, 10),
-            new CartaBuff("Barriera Difensiva", "Il tuo scudo sale di 10 per lo scontro",
-                    1, TipoCarta.POTENZIAMENTO_DIFESA, 10),
-            new CartaDebuff("Indebolimento", "Attacco nemico -10 per lo scontro",
-                    1, TipoCarta.INDEBOLIMENTO_ATTACCO, 10),
-            new CartaDebuff("Spacca-Armatura", "Armatura nemica -10 per lo scontro",
-                    1, TipoCarta.INDEBOLIMENTO_DIFESA, 10),
-            new CartaPesca("Pesca Rapida", "Pesca una carta dal mazzo", 1, 1));
 
     private final Set<KeyCode> tasti = EnumSet.noneOf(KeyCode.class);
     private final AnimationTimer timer = creaTimer();
@@ -128,23 +115,28 @@ public class App extends Application {
 
     private Scene creaScenaCombattimento() {
         log.setEditable(false);
-        log.setPrefHeight(140);
+        log.setPrefHeight(100);
         pulsanteAttacca.setOnAction(e -> attacca());
+        pulsanteTerminaTurno.setOnAction(e -> terminaTurno());
         pulsanteTorna.setOnAction(e -> tornaAlCorridoio());
-        creaPulsantiCarte();
 
-        HBox pulsanti = new HBox(10, pulsanteAttacca, pulsanteTorna);
+        HBox pulsanti = new HBox(10, pulsanteAttacca, pulsanteTerminaTurno, pulsanteTorna);
         VBox radice = new VBox(10, etichettaEroeCombattimento, etichettaNemicoCombattimento,
                 log, pulsantiCarte, pulsanti);
         radice.setPadding(new Insets(15));
         return new Scene(radice, LARGHEZZA, ALTEZZA);
     }
 
-    private void creaPulsantiCarte() {
-        for (Carta carta : carteDiProva) {
-            Button pulsante = new Button(carta.getNome());
+    private void aggiornaPulsantiCarte() {
+        pulsantiCarte.getChildren().clear();
+        List<Carta> carte = giocatore.getMano().getCarte();
+        for (int indice = 0; indice < carte.size(); indice++) {
+            Carta carta = carte.get(indice);
+            Button pulsante = new Button(carta.getNome() + " (" + carta.getCostoPA() + " PA)");
             pulsante.setTooltip(new Tooltip(carta.getDescrizione()));
-            pulsante.setOnAction(e -> giocaCarta(carta));
+            pulsante.setDisable(battaglia.isFinita() || giocatore.getPuntiAzione() < carta.getCostoPA());
+            int posizione = indice;
+            pulsante.setOnAction(e -> giocaCarta(posizione));
             pulsantiCarte.getChildren().add(pulsante);
         }
     }
@@ -205,25 +197,28 @@ public class App extends Application {
     }
 
     private void attacca() {
-        log.appendText(battaglia.eseguiTurno());
+        log.appendText(battaglia.attaccaConEroe());
         aggiornaCombattimento();
     }
 
-    private void giocaCarta(Carta carta) {
+    private void terminaTurno() {
+        log.appendText(battaglia.terminaTurnoGiocatore());
+        aggiornaCombattimento();
+    }
+
+    private void giocaCarta(int indice) {
         Nemico nemicoDelPiano = battaglia.getNemico();
         int attaccoEroe = giocatore.getAttacco();
         int difesaEroe = giocatore.getDifesa();
         int attaccoNemico = nemicoDelPiano.getAttacco();
         int difesaNemico = nemicoDelPiano.getDifesa();
 
-        carta.applica(giocatore, nemicoDelPiano);
+        log.appendText(battaglia.giocaCartaDallaMano(indice));
 
-        String variazioni = descriviVariazione("Attacco dell'eroe", attaccoEroe, giocatore.getAttacco())
+        log.appendText(descriviVariazione("Attacco dell'eroe", attaccoEroe, giocatore.getAttacco())
                 + descriviVariazione("Difesa dell'eroe", difesaEroe, giocatore.getDifesa())
                 + descriviVariazione("Attacco del nemico", attaccoNemico, nemicoDelPiano.getAttacco())
-                + descriviVariazione("Difesa del nemico", difesaNemico, nemicoDelPiano.getDifesa());
-        log.appendText("Giochi la carta " + carta.getNome() + ".\n");
-        log.appendText(variazioni.isEmpty() ? "Nessun cambiamento alle statistiche.\n" : variazioni);
+                + descriviVariazione("Difesa del nemico", difesaNemico, nemicoDelPiano.getDifesa()));
         aggiornaCombattimento();
     }
 
@@ -237,8 +232,10 @@ public class App extends Application {
     private void aggiornaCombattimento() {
         etichettaEroeCombattimento.setText(testoEroe());
         etichettaNemicoCombattimento.setText(testoNemico());
-        pulsantiCarte.getChildren().forEach(pulsante -> pulsante.setDisable(battaglia.isFinita()));
-        pulsanteAttacca.setDisable(battaglia.isFinita());
+        aggiornaPulsantiCarte();
+        pulsanteAttacca.setDisable(battaglia.isFinita()
+                || giocatore.getPuntiAzione() < Battaglia.COSTO_PA_ATTACCO_BASE);
+        pulsanteTerminaTurno.setDisable(battaglia.isFinita());
         pulsanteTorna.setDisable(!battaglia.isVinta());
     }
 
@@ -251,6 +248,7 @@ public class App extends Application {
 
     private String testoEroe() {
         return giocatore.getNome() + " - HP " + giocatore.getHp() + "/" + giocatore.getHpMax()
+                + " - PA " + giocatore.getPuntiAzione()
                 + " - Attacco " + giocatore.getAttacco() + " - Difesa " + giocatore.getDifesa()
                 + " - Livello " + giocatore.getLivello()
                 + " (XP " + giocatore.getEsperienza() + "/" + giocatore.getEsperienzaProssimoLivello() + ")";
