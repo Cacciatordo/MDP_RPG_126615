@@ -11,6 +11,7 @@ public class Battaglia {
     public Battaglia(Giocatore giocatore, Nemico nemico) {
         this.giocatore = giocatore;
         this.nemico = nemico;
+        this.giocatore.azzeraModificatori();
     }
 
     public Giocatore getGiocatore() {
@@ -35,8 +36,7 @@ public class Battaglia {
         }
         StringBuilder racconto = new StringBuilder();
 
-        int dannoAlNemico = giocatore.getAttaccoBase();
-        nemico.subisciDanno(dannoAlNemico);
+        int dannoAlNemico = giocatore.attacca(nemico);
         racconto.append("Colpisci ").append(nemico.getNome())
                 .append(" per ").append(dannoAlNemico).append(" danni.\n");
 
@@ -47,8 +47,7 @@ public class Battaglia {
             return racconto.toString();
         }
 
-        int dannoAlGiocatore = nemico.getAttaccoBase();
-        giocatore.subisciDanno(dannoAlGiocatore);
+        int dannoAlGiocatore = nemico.attacca(giocatore);
         racconto.append(nemico.getNome()).append(" ti colpisce per ")
                 .append(dannoAlGiocatore).append(" danni.\n");
 
