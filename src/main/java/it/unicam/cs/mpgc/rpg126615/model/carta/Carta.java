@@ -1,5 +1,8 @@
 package it.unicam.cs.mpgc.rpg126615.model.carta;
 
+import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
+
 public class Carta {
 
     private final String nome;
@@ -28,5 +31,8 @@ public class Carta {
 
     public TipoCarta getTipo() {
         return tipo;
+    }
+
+    public void applica(Giocatore giocatore, Nemico nemico) {
     }
 }
