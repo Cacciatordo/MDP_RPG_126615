@@ -13,9 +13,13 @@ public class Torre {
 
     public Torre() {
         for (int numero = 1; numero <= NUMERO_PIANI; numero++) {
-            Nemico nemico = new Nemico("Mostro del Piano " + numero,
-                    30 + numero * 10, 5 + numero * 2, 20 + numero * 5);
-            piani.add(new Piano(numero, nemico));
+            if (isNumeroTriangolare(numero)) {
+                piani.add(new Piano(numero, TipoPiano.BOSS, new Nemico("Boss del Piano " + numero,
+                        60 + numero * 20, 8 + numero * 2, 60 + numero * 10)));
+            } else {
+                piani.add(new Piano(numero, TipoPiano.COMBATTIMENTO, new Nemico("Mostro del Piano " + numero,
+                        30 + numero * 10, 5 + numero * 2, 20 + numero * 5)));
+            }
         }
     }
 
@@ -25,5 +29,14 @@ public class Torre {
 
     public Piano getPiano(int numero) {
         return piani.get(numero - 1);
+    }
+
+    public static boolean isNumeroTriangolare(int n) {
+        if (n <= 0) {
+            return false;
+        }
+        int discriminante = 8 * n + 1;
+        int radice = (int) Math.sqrt(discriminante);
+        return radice * radice == discriminante;
     }
 }
