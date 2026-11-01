@@ -15,6 +15,8 @@ public class Giocatore extends Personaggio {
     private int livello;
     private int esperienza;
     private int puntiAzione;
+    private int bonusAttaccoPermanente;
+    private int difesaPermanente;
 
     public Giocatore(String nome, int hpMax, int attaccoBase) {
         super(nome, hpMax, attaccoBase);
@@ -30,7 +32,7 @@ public class Giocatore extends Personaggio {
     public Mazzo getMazzo() {
         return mazzo;
     }
-    
+
     public int pescaCarte(int quantita) {
         int pescate = 0;
         while (pescate < quantita && !mano.isPiena()) {
@@ -78,5 +80,23 @@ public class Giocatore extends Personaggio {
             esperienza -= getEsperienzaProssimoLivello();
             livello++;
         }
+    }
+
+    public void aggiungiBonusAttacco(int bonus) {
+        bonusAttaccoPermanente += bonus;
+    }
+
+    public void aggiungiDifesaPermanente(int bonus) {
+        difesaPermanente += bonus;
+    }
+
+    @Override
+    public int getAttacco() {
+        return super.getAttacco() + bonusAttaccoPermanente;
+    }
+
+    @Override
+    public int getDifesa() {
+        return super.getDifesa() + difesaPermanente;
     }
 }
