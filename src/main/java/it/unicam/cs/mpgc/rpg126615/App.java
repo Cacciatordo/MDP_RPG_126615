@@ -4,6 +4,9 @@ import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
+import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
+import it.unicam.cs.mpgc.rpg126615.model.torre.Piano;
+import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -24,9 +27,12 @@ import javafx.stage.Stage;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class App extends Application {
+
+    private static final int NUMERO_PIANI = 20;
 
     private static final double LARGHEZZA = 764;
     private static final double ALTEZZA = 360;
@@ -42,6 +48,7 @@ public class App extends Application {
 
     private Giocatore giocatore;
     private Torre torre;
+    private Piano piano;
     private Battaglia battaglia;
     private int numeroPiano = 1;
 
@@ -73,7 +80,7 @@ public class App extends Application {
     public void start(Stage stage) {
         finestra = stage;
         giocatore = new Giocatore("Eroe", 100, 12);
-        torre = new Torre();
+        torre = new Torre(new GeneratorePiani(new Random()).generaPiani(NUMERO_PIANI));
         scenaCorridoio = creaScenaCorridoio();
         scenaCombattimento = creaScenaCombattimento();
         iniziaPiano();
@@ -99,7 +106,7 @@ public class App extends Application {
         eroe.setY(Y_PAVIMENTO - ALTEZZA_EROE);
 
         Label suggerimento = creaEtichetta(15, 330);
-        suggerimento.setText("A/D o frecce: cammina - raggiungi il nemico per combattere");
+        suggerimento.setText("A/D o frecce: cammina - raggiungi l'oggetto al centro per usarlo");
 
         etichettaMessaggio.setWrapText(true);
         etichettaMessaggio.setMaxWidth(LARGHEZZA - 30);
@@ -142,19 +149,31 @@ public class App extends Application {
     }
 
     private void iniziaPiano() {
-        Nemico nemicoDelPiano = torre.getPiano(numeroPiano).getNemico();
-        battaglia = new Battaglia(giocatore, nemicoDelPiano);
+        piano = torre.getPiano(numeroPiano);
+        if (piano.haNemico()) {
+            battaglia = new Battaglia(giocatore, piano.getNemico());
+            etichettaMessaggio.setText("Piano " + numeroPiano + ": ti sbarra la strada "
+                    + piano.getNemico().getNome());
+        } else {
+            battaglia = null;
+            etichettaMessaggio.setText("Piano " + numeroPiano + ": " + testoInvito());
+        }
         eroe.setX(20);
-        etichettaMessaggio.setText("Piano " + numeroPiano + ": ti sbarra la strada " + nemicoDelPiano.getNome());
         aggiornaCorridoio();
     }
 
+    private boolean isPianoSuperato() {
+        return battaglia != null ? battaglia.isVinta() : piano.isCompletato();
+    }
+
     private void aggiornaCorridoio() {
-        etichettaPiano.setText("Piano " + numeroPiano + " di " + torre.getNumeroPiani());
+        etichettaPiano.setText("Piano " + numeroPiano + " di " + torre.getNumeroPiani()
+                + " - " + piano.getTipo());
         etichettaEroeCorridoio.setText(testoEroe());
         etichettaNemicoCorridoio.setText(testoNemico());
-        nemico.setVisible(battaglia.getNemico().isVivo());
-        porta.setFill(battaglia.isVinta() ? Color.LIMEGREEN : Color.DARKGRAY);
+        nemico.setFill(coloreOggettoDelPiano());
+        nemico.setVisible(battaglia == null || battaglia.getNemico().isVivo());
+        porta.setFill(isPianoSuperato() ? Color.LIMEGREEN : Color.DARKGRAY);
     }
 
     private void muoviEroe(double secondi) {
@@ -170,13 +189,22 @@ public class App extends Application {
     }
 
     private void controllaNemico() {
-        if (!battaglia.isFinita() && eroe.getBoundsInParent().intersects(nemico.getBoundsInParent())) {
+        if (battaglia != null && !battaglia.isFinita()
+                && eroe.getBoundsInParent().intersects(nemico.getBoundsInParent())) {
             iniziaCombattimento();
         }
     }
 
+    private void controllaOggettoDelPiano() {
+        if (battaglia == null && !piano.isCompletato()
+                && eroe.getBoundsInParent().intersects(nemico.getBoundsInParent())) {
+            etichettaMessaggio.setText("Piano " + numeroPiano + ": " + piano.entra(giocatore));
+            aggiornaCorridoio();
+        }
+    }
+
     private void controllaPorta() {
-        if (battaglia.isVinta() && eroe.getBoundsInParent().intersects(porta.getBoundsInParent())) {
+        if (isPianoSuperato() && eroe.getBoundsInParent().intersects(porta.getBoundsInParent())) {
             if (numeroPiano >= torre.getNumeroPiani()) {
                 etichettaMessaggio.setText("Hai conquistato la torre!");
                 timer.stop();
@@ -255,9 +283,25 @@ public class App extends Application {
     }
 
     private String testoNemico() {
+        if (battaglia == null) {
+            return piano.getTipo() == TipoPiano.CASSA ? "Cassa" : "Fontana di lava";
+        }
         Nemico nemicoDelPiano = battaglia.getNemico();
         return nemicoDelPiano.getNome() + " - HP " + nemicoDelPiano.getHp() + "/" + nemicoDelPiano.getHpMax()
                 + " - Attacco " + nemicoDelPiano.getAttacco() + " - Difesa " + nemicoDelPiano.getDifesa();
+    }
+
+    private String testoInvito() {
+        return piano.getTipo() == TipoPiano.CASSA
+                ? "raggiungi la cassa per aprirla."
+                : "raggiungi la fontana di lava per curarti.";
+    }
+
+    private Color coloreOggettoDelPiano() {
+        if (battaglia != null) {
+            return Color.CRIMSON;
+        }
+        return piano.getTipo() == TipoPiano.CASSA ? Color.SADDLEBROWN : Color.ORANGE;
     }
 
     private static Label creaEtichetta(double x, double y) {
@@ -277,6 +321,7 @@ public class App extends Application {
                 if (ultimoIstante != 0) {
                     muoviEroe((adesso - ultimoIstante) / 1_000_000_000.0);
                     controllaNemico();
+                    controllaOggettoDelPiano();
                     controllaPorta();
                 }
                 ultimoIstante = adesso;
