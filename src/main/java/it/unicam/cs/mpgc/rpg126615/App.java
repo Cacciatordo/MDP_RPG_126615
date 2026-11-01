@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class App extends Application {
 
-    private static final int NUMERO_PIANI = 20;
+    private static final int NUMERO_PIANI = 3;
 
     private static final double LARGHEZZA = 764;
     private static final double ALTEZZA = 360;
@@ -268,7 +268,9 @@ public class App extends Application {
     }
 
     private void tornaAlCorridoio() {
-        etichettaMessaggio.setText("Nemico sconfitto! Raggiungi la porta per salire.");
+        etichettaMessaggio.setText(piano.getTipo() == TipoPiano.BOSS_FINALE
+                ? "Hai sconfitto il " + piano.getNemico().getNome() + "! Raggiungi la porta per uscire dalla torre."
+                : "Nemico sconfitto! Raggiungi la porta per salire.");
         aggiornaCorridoio();
         finestra.setScene(scenaCorridoio);
         timer.start();
@@ -299,7 +301,7 @@ public class App extends Application {
 
     private Color coloreOggettoDelPiano() {
         if (battaglia != null) {
-            return Color.CRIMSON;
+            return piano.getTipo() == TipoPiano.BOSS_FINALE ? Color.DARKVIOLET : Color.CRIMSON;
         }
         return piano.getTipo() == TipoPiano.CASSA ? Color.SADDLEBROWN : Color.ORANGE;
     }

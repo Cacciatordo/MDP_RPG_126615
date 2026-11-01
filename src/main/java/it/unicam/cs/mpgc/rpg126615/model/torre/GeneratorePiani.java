@@ -18,6 +18,11 @@ public class GeneratorePiani {
     private static final double PROBABILITA_RIPOSO = 0.2;
     private static final double PROBABILITA_CASSA = 0.2;
 
+    private static final String NOME_BOSS_FINALE = "Signore della Torre";
+    private static final int HP_BOSS_FINALE = 300;
+    private static final int ATTACCO_BOSS_FINALE = 30;
+    private static final int ESPERIENZA_BOSS_FINALE = 300;
+
     private final Random random;
 
     public GeneratorePiani(Random random) {
@@ -42,11 +47,11 @@ public class GeneratorePiani {
     }
 
     private Piano creaPiano(int numero, int numeroPiani) {
+        if (numero == numeroPiani) {
+            return creaPianoBossFinale(numero);
+        }
         if (isNumeroTriangolare(numero)) {
             return creaPianoBoss(numero);
-        }
-        if (numero == numeroPiani) {
-            return creaPianoCombattimento(numero);
         }
         return switch (scegliTipo(numero)) {
             case RIPOSO -> new Piano(numero, TipoPiano.RIPOSO, null);
@@ -73,6 +78,11 @@ public class GeneratorePiani {
     private ContenutoCassa scegliContenutoCassa() {
         ContenutoCassa[] contenuti = ContenutoCassa.values();
         return contenuti[random.nextInt(contenuti.length)];
+    }
+
+    private Piano creaPianoBossFinale(int numero) {
+        return new Piano(numero, TipoPiano.BOSS_FINALE, new Nemico(NOME_BOSS_FINALE,
+                HP_BOSS_FINALE, ATTACCO_BOSS_FINALE, ESPERIENZA_BOSS_FINALE));
     }
 
     private Piano creaPianoBoss(int numero) {
