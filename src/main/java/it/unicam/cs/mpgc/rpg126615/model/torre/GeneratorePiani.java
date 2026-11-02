@@ -1,5 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.model.torre;
 
+import it.unicam.cs.mpgc.rpg126615.model.entita.Boss;
+import it.unicam.cs.mpgc.rpg126615.model.entita.BossFinale;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 
 import java.util.ArrayList;
@@ -17,11 +19,6 @@ public class GeneratorePiani {
 
     private static final double PROBABILITA_RIPOSO = 0.2;
     private static final double PROBABILITA_CASSA = 0.2;
-
-    private static final String NOME_BOSS_FINALE = "Signore della Torre";
-    private static final int HP_BOSS_FINALE = 300;
-    private static final int ATTACCO_BOSS_FINALE = 30;
-    private static final int ESPERIENZA_BOSS_FINALE = 300;
 
     private final Random random;
 
@@ -48,15 +45,15 @@ public class GeneratorePiani {
 
     private PianoTorre creaPiano(int numero, int numeroPiani) {
         if (numero == numeroPiani) {
-            return creaPianoBossFinale(numero);
+            return new PianoBossFinale(numero, new BossFinale());
         }
         if (isNumeroTriangolare(numero)) {
-            return creaPianoBoss(numero);
+            return new PianoBoss(numero, new Boss(numero));
         }
         return switch (scegliTipo(numero)) {
             case RIPOSO -> new PianoRiposo(numero);
             case CASSA -> new PianoCassa(numero, scegliContenutoCassa());
-            default -> creaPianoCombattimento(numero);
+            default -> new PianoCombattimento(numero, new Nemico(numero));
         };
     }
 
@@ -78,20 +75,5 @@ public class GeneratorePiani {
     private ContenutoCassa scegliContenutoCassa() {
         ContenutoCassa[] contenuti = ContenutoCassa.values();
         return contenuti[random.nextInt(contenuti.length)];
-    }
-
-    private PianoTorre creaPianoBossFinale(int numero) {
-        return new PianoBossFinale(numero, new Nemico(NOME_BOSS_FINALE,
-                HP_BOSS_FINALE, ATTACCO_BOSS_FINALE, ESPERIENZA_BOSS_FINALE));
-    }
-
-    private PianoTorre creaPianoBoss(int numero) {
-        return new PianoBoss(numero, new Nemico("Boss del Piano " + numero,
-                60 + numero * 20, 8 + numero * 2, 60 + numero * 10));
-    }
-
-    private PianoTorre creaPianoCombattimento(int numero) {
-        return new PianoCombattimento(numero, new Nemico("Mostro del Piano " + numero,
-                30 + numero * 10, 5 + numero * 2, 20 + numero * 5));
     }
 }

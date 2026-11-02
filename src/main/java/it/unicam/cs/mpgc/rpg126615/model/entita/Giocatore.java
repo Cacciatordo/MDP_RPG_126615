@@ -3,25 +3,23 @@ package it.unicam.cs.mpgc.rpg126615.model.entita;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Mano;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Mazzo;
+import it.unicam.cs.mpgc.rpg126615.model.progressione.GestoreLivello;
+import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
 
-public class Giocatore extends Personaggio {
+public class Giocatore extends EntitaAstratta implements Livellabile {
 
-    private static final int XP_BASE_PER_LIVELLO = 100;
     private static final int PA_PER_TURNO = 3;
 
     private final Mano mano = new Mano();
     private final Mazzo mazzo = new Mazzo();
+    private final GestoreLivello gestoreLivello = new GestoreLivello();
 
-    private int livello;
-    private int esperienza;
     private int puntiAzione;
     private int bonusAttaccoPermanente;
     private int difesaPermanente;
 
     public Giocatore(String nome, int hpMax, int attaccoBase) {
         super(nome, hpMax, attaccoBase);
-        this.livello = 1;
-        this.esperienza = 0;
         this.puntiAzione = PA_PER_TURNO;
     }
 
@@ -62,24 +60,24 @@ public class Giocatore extends Personaggio {
         puntiAzione = PA_PER_TURNO;
     }
 
+    @Override
     public int getLivello() {
-        return livello;
+        return gestoreLivello.getLivello();
     }
 
+    @Override
     public int getEsperienza() {
-        return esperienza;
+        return gestoreLivello.getEsperienza();
     }
 
+    @Override
     public int getEsperienzaProssimoLivello() {
-        return livello * XP_BASE_PER_LIVELLO;
+        return gestoreLivello.getEsperienzaProssimoLivello();
     }
 
+    @Override
     public void aggiungiEsperienza(int xp) {
-        esperienza += xp;
-        while (esperienza >= getEsperienzaProssimoLivello()) {
-            esperienza -= getEsperienzaProssimoLivello();
-            livello++;
-        }
+        gestoreLivello.aggiungiEsperienza(xp);
     }
 
     public void aggiungiBonusAttacco(int bonus) {
