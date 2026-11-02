@@ -4,9 +4,9 @@ import java.util.List;
 
 public class Torre {
 
-    private final List<Piano> piani;
-    
-    public Torre(List<Piano> piani) {
+    private final List<PianoTorre> piani;
+
+    public Torre(List<PianoTorre> piani) {
         this.piani = List.copyOf(piani);
     }
 
@@ -14,7 +14,7 @@ public class Torre {
         return piani.size();
     }
 
-    public Piano getPiano(int numero) {
+    public PianoTorre getPiano(int numero) {
         return piani.get(numero - 1);
     }
 }

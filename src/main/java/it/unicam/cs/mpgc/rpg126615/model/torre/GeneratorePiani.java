@@ -29,8 +29,8 @@ public class GeneratorePiani {
         this.random = random;
     }
 
-    public List<Piano> generaPiani(int numeroPiani) {
-        List<Piano> piani = new ArrayList<>();
+    public List<PianoTorre> generaPiani(int numeroPiani) {
+        List<PianoTorre> piani = new ArrayList<>();
         for (int numero = 1; numero <= numeroPiani; numero++) {
             piani.add(creaPiano(numero, numeroPiani));
         }
@@ -46,7 +46,7 @@ public class GeneratorePiani {
         return radice * radice == discriminante;
     }
 
-    private Piano creaPiano(int numero, int numeroPiani) {
+    private PianoTorre creaPiano(int numero, int numeroPiani) {
         if (numero == numeroPiani) {
             return creaPianoBossFinale(numero);
         }
@@ -54,8 +54,8 @@ public class GeneratorePiani {
             return creaPianoBoss(numero);
         }
         return switch (scegliTipo(numero)) {
-            case RIPOSO -> new Piano(numero, TipoPiano.RIPOSO, null);
-            case CASSA -> new Piano(numero, scegliContenutoCassa());
+            case RIPOSO -> new PianoRiposo(numero);
+            case CASSA -> new PianoCassa(numero, scegliContenutoCassa());
             default -> creaPianoCombattimento(numero);
         };
     }
@@ -80,18 +80,18 @@ public class GeneratorePiani {
         return contenuti[random.nextInt(contenuti.length)];
     }
 
-    private Piano creaPianoBossFinale(int numero) {
-        return new Piano(numero, TipoPiano.BOSS_FINALE, new Nemico(NOME_BOSS_FINALE,
+    private PianoTorre creaPianoBossFinale(int numero) {
+        return new PianoBossFinale(numero, new Nemico(NOME_BOSS_FINALE,
                 HP_BOSS_FINALE, ATTACCO_BOSS_FINALE, ESPERIENZA_BOSS_FINALE));
     }
 
-    private Piano creaPianoBoss(int numero) {
-        return new Piano(numero, TipoPiano.BOSS, new Nemico("Boss del Piano " + numero,
+    private PianoTorre creaPianoBoss(int numero) {
+        return new PianoBoss(numero, new Nemico("Boss del Piano " + numero,
                 60 + numero * 20, 8 + numero * 2, 60 + numero * 10));
     }
 
-    private Piano creaPianoCombattimento(int numero) {
-        return new Piano(numero, TipoPiano.COMBATTIMENTO, new Nemico("Mostro del Piano " + numero,
+    private PianoTorre creaPianoCombattimento(int numero) {
+        return new PianoCombattimento(numero, new Nemico("Mostro del Piano " + numero,
                 30 + numero * 10, 5 + numero * 2, 20 + numero * 5));
     }
 }

@@ -5,7 +5,7 @@ import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
-import it.unicam.cs.mpgc.rpg126615.model.torre.Piano;
+import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
 import javafx.animation.AnimationTimer;
@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class App extends Application {
 
-    private static final int NUMERO_PIANI = 3;
+    private static final int NUMERO_PIANI = 20;
 
     private static final double LARGHEZZA = 764;
     private static final double ALTEZZA = 360;
@@ -48,7 +48,7 @@ public class App extends Application {
 
     private Giocatore giocatore;
     private Torre torre;
-    private Piano piano;
+    private PianoTorre piano;
     private Battaglia battaglia;
     private int numeroPiano = 1;
 
