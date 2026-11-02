@@ -1,27 +1,24 @@
 package it.unicam.cs.mpgc.rpg126615.model.carta;
 
-import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
-import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
+import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
 
-public class CartaBuff extends Carta {
+public class CartaBuff extends CartaStatistica {
 
-    private final int valore;
-
-    public CartaBuff(String nome, String descrizione, int costoPA, TipoCarta tipo, int valore) {
-        super(nome, descrizione, costoPA, tipo);
-        this.valore = valore;
-    }
-
-    public int getValore() {
-        return valore;
+    public CartaBuff(String nome, String descrizione, int valoreBase,
+                     Livellabile riferimentoLivello, StatisticaBersaglio bersaglio) {
+        super(nome, descrizione, valoreBase, riferimentoLivello, bersaglio);
     }
 
     @Override
-    public void applica(Giocatore giocatore, Nemico nemico) {
-        if (getTipo() == TipoCarta.POTENZIAMENTO_ATTACCO) {
-            giocatore.modificaAttacco(valore);
-        } else if (getTipo() == TipoCarta.POTENZIAMENTO_DIFESA) {
-            giocatore.modificaDifesa(valore);
-        }
+    public TipoCarta getTipo() {
+        return switch (getBersaglio()) {
+            case ATTACCO -> TipoCarta.POTENZIAMENTO_ATTACCO;
+            case SCUDO -> TipoCarta.POTENZIAMENTO_DIFESA;
+        };
+    }
+
+    @Override
+    protected void produciEffetto(ContestoCarta contesto) {
+        contesto.applicaBonusGiocatore(getBersaglio(), getValoreEffettivo());
     }
 }

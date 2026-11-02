@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.model.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
+import it.unicam.cs.mpgc.rpg126615.model.carta.ContestoCarta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 
@@ -14,10 +15,12 @@ public class Battaglia {
 
     private final Giocatore giocatore;
     private final Nemico nemico;
+    private final ContestoCarta contestoCarte;
 
     public Battaglia(Giocatore giocatore, Nemico nemico) {
         this.giocatore = giocatore;
         this.nemico = nemico;
+        this.contestoCarte = new ContestoBattaglia(giocatore, nemico);
         this.giocatore.azzeraModificatori();
         this.giocatore.getMazzo().ripristinaMazzoCompleto(this.giocatore.getMano());
         this.giocatore.pescaCarte(CARTE_INIZIALI_BATTAGLIA);
@@ -47,13 +50,16 @@ public class Battaglia {
             return "Carta non valida.\n";
         }
         Carta carta = carte.get(indiceCarta);
+        if (!carta.isGiocabile(giocatore.getMano())) {
+            return "Non puoi giocare " + carta.getNome() + " in questo momento.\n";
+        }
         if (giocatore.getPuntiAzione() < carta.getCostoPA()) {
             return "Punti azione insufficienti per giocare " + carta.getNome() + ".\n";
         }
         giocatore.consumaPA(carta.getCostoPA());
         giocatore.getMano().rimuoviCarta(carta);
         giocatore.getMazzo().scarta(carta);
-        carta.applica(giocatore, nemico);
+        carta.applica(contestoCarte);
         return "Giochi la carta " + carta.getNome() + ".\n";
     }
 

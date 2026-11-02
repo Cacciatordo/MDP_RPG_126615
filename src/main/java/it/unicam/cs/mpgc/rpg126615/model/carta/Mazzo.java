@@ -1,75 +1,76 @@
 package it.unicam.cs.mpgc.rpg126615.model.carta;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class Mazzo {
 
-    private static final int COSTO_PA_STANDARD = 1;
-    private static final int VALORE_BASE_STATISTICA = 10;
-    private static final int COPIE_STANDARD = 2;
-    private static final int COPIE_PESCA = 1;
-
-    private final List<Carta> pilaPesca = new ArrayList<>();
+    private final Deque<Carta> pilaPesca = new ArrayDeque<>();
     private final List<Carta> pilaScarti = new ArrayList<>();
+    private final List<Carta> carteDelMazzo = new ArrayList<>();
 
-    public Mazzo() {
-        pilaPesca.addAll(creaCarteIniziali());
-        Collections.shuffle(pilaPesca);
+    public Mazzo(Collection<? extends Carta> carte) {
+        if (carte == null || carte.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Le carte del mazzo non possono essere nulle");
+        }
+        carteDelMazzo.addAll(carte);
+        ricomponiPilaPesca();
     }
 
-    public Carta pesca() {
+    public Optional<Carta> pesca() {
         if (pilaPesca.isEmpty()) {
             riciclaScarti();
         }
-        if (pilaPesca.isEmpty()) {
-            return null;
-        }
-        return pilaPesca.remove(pilaPesca.size() - 1);
+        return Optional.ofNullable(pilaPesca.pollFirst());
     }
 
     public void scarta(Carta carta) {
+        if (carta == null) {
+            throw new IllegalArgumentException("La carta da scartare non può essere nulla");
+        }
         pilaScarti.add(carta);
     }
 
-    public int getCarteRimanenti() {
+    public void ripristinaMazzoCompleto(Mano mano) {
+        if (mano != null) {
+            mano.svuota();
+        }
+        ricomponiPilaPesca();
+    }
+
+    public List<Carta> getPilaScarti() {
+        return Collections.unmodifiableList(pilaScarti);
+    }
+
+    public int getDimensionePesca() {
         return pilaPesca.size();
     }
 
-    public void ripristinaMazzoCompleto(Mano mano) {
-        pilaPesca.addAll(mano.getCarte());
-        mano.svuota();
-        pilaPesca.addAll(pilaScarti);
+    public int getDimensioneScarti() {
+        return pilaScarti.size();
+    }
+
+    private void ricomponiPilaPesca() {
+        pilaPesca.clear();
         pilaScarti.clear();
-        Collections.shuffle(pilaPesca);
+        List<Carta> tutte = new ArrayList<>(carteDelMazzo);
+        Collections.shuffle(tutte);
+        pilaPesca.addAll(tutte);
     }
 
     private void riciclaScarti() {
-        pilaPesca.addAll(pilaScarti);
+        if (pilaScarti.isEmpty()) {
+            return;
+        }
+        List<Carta> daRimescolare = new ArrayList<>(pilaScarti);
+        Collections.shuffle(daRimescolare);
+        pilaPesca.addAll(daRimescolare);
         pilaScarti.clear();
-        Collections.shuffle(pilaPesca);
-    }
-
-    private List<Carta> creaCarteIniziali() {
-        List<Carta> carte = new ArrayList<>();
-        for (int i = 0; i < COPIE_STANDARD; i++) {
-            carte.add(new CartaBuff("Potenziamento Attacco",
-                    "Il tuo attacco sale di " + VALORE_BASE_STATISTICA + " per lo scontro",
-                    COSTO_PA_STANDARD, TipoCarta.POTENZIAMENTO_ATTACCO, VALORE_BASE_STATISTICA));
-            carte.add(new CartaBuff("Barriera Difensiva",
-                    "Il tuo scudo sale di " + VALORE_BASE_STATISTICA + " per lo scontro",
-                    COSTO_PA_STANDARD, TipoCarta.POTENZIAMENTO_DIFESA, VALORE_BASE_STATISTICA));
-            carte.add(new CartaDebuff("Indebolimento",
-                    "Attacco nemico -" + VALORE_BASE_STATISTICA + " per lo scontro",
-                    COSTO_PA_STANDARD, TipoCarta.INDEBOLIMENTO_ATTACCO, VALORE_BASE_STATISTICA));
-            carte.add(new CartaDebuff("Spacca-Armatura",
-                    "Armatura nemica -" + VALORE_BASE_STATISTICA + " per lo scontro",
-                    COSTO_PA_STANDARD, TipoCarta.INDEBOLIMENTO_DIFESA, VALORE_BASE_STATISTICA));
-        }
-        for (int i = 0; i < COPIE_PESCA; i++) {
-            carte.add(new CartaPesca("Pesca Rapida", "Pesca una carta dal mazzo", COSTO_PA_STANDARD, 1));
-        }
-        return carte;
     }
 }
