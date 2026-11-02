@@ -7,4 +7,6 @@ public interface ContestoCarta {
     void applicaMalusNemico(StatisticaBersaglio statistica, int valore);
 
     void richiediPescata(int quantita);
+
+    void richiediCura(int quantita);
 }

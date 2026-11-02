@@ -10,6 +10,7 @@ public class FabbricaCarte {
 
     private static final String VALORE = CartaAstratta.SEGNAPOSTO_VALORE;
     private static final int VALORE_BASE_STATISTICA = 10;
+    private static final int VALORE_BASE_CURA = 15;
     private static final int COPIE_STANDARD = 2;
     private static final int COPIE_PESCA = 1;
 
@@ -20,6 +21,7 @@ public class FabbricaCarte {
         aggiungiCopie(carte, COPIE_STANDARD, () -> indebolimento(riferimento));
         aggiungiCopie(carte, COPIE_STANDARD, () -> spaccaArmatura(riferimento));
         aggiungiCopie(carte, COPIE_PESCA, () -> pescaRapida(riferimento));
+        aggiungiCopie(carte, COPIE_STANDARD, () -> rigenerazione(riferimento));
         return carte;
     }
 
@@ -55,5 +57,10 @@ public class FabbricaCarte {
 
     private static Carta pescaRapida(Livellabile riferimento) {
         return new CartaPesca("Pesca Rapida", "Pesca una carta dal mazzo", riferimento);
+    }
+
+    private static Carta rigenerazione(Livellabile riferimento) {
+        return new CartaCura("Rigenerazione", "Ripristina " + VALORE + " HP dell'Eroe",
+                VALORE_BASE_CURA, riferimento);
     }
 }

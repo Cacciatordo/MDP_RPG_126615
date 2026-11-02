@@ -5,5 +5,6 @@ public enum TipoCarta {
     POTENZIAMENTO_DIFESA,
     INDEBOLIMENTO_ATTACCO,
     INDEBOLIMENTO_DIFESA,
+    CURA,
     PESCA
 }

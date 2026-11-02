@@ -38,4 +38,9 @@ public class ContestoBattaglia implements ContestoCarta {
     public void richiediPescata(int quantita) {
         giocatore.pescaCarte(quantita);
     }
+
+    @Override
+    public void richiediCura(int quantita) {
+        giocatore.cura(quantita);
+    }
 }
