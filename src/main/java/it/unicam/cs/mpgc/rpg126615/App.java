@@ -4,14 +4,11 @@ import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
-import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
-import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
+import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggi;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggiFile;
-import it.unicam.cs.mpgc.rpg126615.persistenza.DatiPiano;
-import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ErrorePersistenzaException;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -35,7 +32,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +40,7 @@ import java.util.Set;
 
 public class App extends Application {
 
+    private static final String NOME_EROE = "Eroe";
     private static final int NUMERO_PIANI = 20;
     private static final long SEME_TORRE = 126615L;
     private static final Path CARTELLA_SALVATAGGI = Path.of("salvataggi");
@@ -61,11 +58,7 @@ public class App extends Application {
     private static final double LARGHEZZA_PORTA = 44;
     private static final double ALTEZZA_PORTA = 70;
 
-    private Giocatore giocatore;
-    private Torre torre;
-    private PianoTorre piano;
-    private Battaglia battaglia;
-    private int numeroPiano = 1;
+    private Partita partita;
 
     private final ArchivioSalvataggi archivio = new ArchivioSalvataggiFile(CARTELLA_SALVATAGGI);
 
@@ -99,11 +92,10 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         finestra = stage;
-        giocatore = new Giocatore("Eroe", 100, 12);
-        torre = new Torre(new GeneratorePiani(new Random(SEME_TORRE)).generaPiani(NUMERO_PIANI));
+        partita = Partita.nuova(NOME_EROE, NUMERO_PIANI, new Random(SEME_TORRE));
         scenaCorridoio = creaScenaCorridoio();
         scenaCombattimento = creaScenaCombattimento();
-        iniziaPiano();
+        mostraPiano();
 
         stage.setTitle("RPG - prova");
         stage.setScene(scenaCorridoio);
@@ -163,7 +155,13 @@ public class App extends Application {
         return new Scene(radice, LARGHEZZA, ALTEZZA);
     }
 
+    private Battaglia battagliaInCorso() {
+        return partita.getBattaglia().orElseThrow();
+    }
+
     private void aggiornaPulsantiCarte() {
+        Giocatore giocatore = partita.getGiocatore();
+        Battaglia battaglia = battagliaInCorso();
         pulsantiCarte.getChildren().clear();
         List<Carta> carte = giocatore.getMano().getCarte();
         for (int indice = 0; indice < carte.size(); indice++) {
@@ -177,14 +175,13 @@ public class App extends Application {
         }
     }
 
-    private void iniziaPiano() {
-        piano = torre.getPiano(numeroPiano);
-        if (piano.haNemico()) {
-            battaglia = new Battaglia(giocatore, piano.getNemico());
+    private void mostraPiano() {
+        int numeroPiano = partita.getNumeroPianoCorrente();
+        Optional<Battaglia> battaglia = partita.getBattaglia();
+        if (battaglia.isPresent()) {
             etichettaMessaggio.setText("Piano " + numeroPiano + ": ti sbarra la strada "
-                    + piano.getNemico().getNome());
+                    + battaglia.get().getNemico().getNome());
         } else {
-            battaglia = null;
             etichettaMessaggio.setText("Piano " + numeroPiano + ": " + testoInvito());
         }
         eroe.setX(20);
@@ -206,24 +203,13 @@ public class App extends Application {
             if (archivio.esiste(nome) && !confermaSovrascrittura(nome)) {
                 return;
             }
-            archivio.salva(nome, creaDatiSalvataggio());
-            etichettaMessaggio.setText("Partita salvata come '" + nome + "': piano " + numeroPiano
-                    + ", livello " + giocatore.getLivello() + ", HP " + giocatore.getHp() + ".");
+            archivio.salva(nome, partita.creaDatiSalvataggio());
+            etichettaMessaggio.setText("Partita salvata come '" + nome + "': " + descriviProgresso());
         } catch (IllegalArgumentException e) {
             etichettaMessaggio.setText("Nome non valido: " + e.getMessage());
         } catch (ErrorePersistenzaException e) {
             etichettaMessaggio.setText("Salvataggio non riuscito: " + e.getMessage());
         }
-    }
-
-    private DatiSalvataggio creaDatiSalvataggio() {
-        List<DatiPiano> datiPiani = new ArrayList<>();
-        for (int numero = 1; numero <= torre.getNumeroPiani(); numero++) {
-            PianoTorre pianoDaSalvare = torre.getPiano(numero);
-            String informazione = pianoDaSalvare.haNemico() ? pianoDaSalvare.getNemico().getNome() : "";
-            datiPiani.add(new DatiPiano(pianoDaSalvare.getTipo(), pianoDaSalvare.isCompletato(), informazione));
-        }
-        return new DatiSalvataggio(numeroPiano, giocatore.getStato(), datiPiani);
     }
 
     private boolean confermaSovrascrittura(String nome) {
@@ -249,48 +235,30 @@ public class App extends Application {
             if (scelto.isEmpty()) {
                 return;
             }
-            applicaSalvataggio(scelto.get(), archivio.carica(scelto.get()));
+            partita.ripristina(archivio.carica(scelto.get()));
+            mostraPiano();
+            etichettaMessaggio.setText("Partita '" + scelto.get() + "' caricata: " + descriviProgresso());
+        } catch (IllegalArgumentException e) {
+            etichettaMessaggio.setText("Caricamento non riuscito: " + e.getMessage());
         } catch (ErrorePersistenzaException e) {
             etichettaMessaggio.setText("Caricamento non riuscito: " + e.getMessage());
         }
     }
 
-    private void applicaSalvataggio(String nome, DatiSalvataggio dati) {
-        if (!corrispondeAllaTorre(dati.piani())) {
-            etichettaMessaggio.setText("Il salvataggio '" + nome + "' non corrisponde alla torre attuale.");
-            return;
-        }
-        giocatore.applicaStato(dati.giocatore());
-        numeroPiano = dati.pianoCorrente();
-        iniziaPiano();
-        etichettaMessaggio.setText("Partita '" + nome + "' caricata: piano " + numeroPiano
-                + ", livello " + giocatore.getLivello() + ", HP " + giocatore.getHp() + ".");
-    }
-
-    private boolean corrispondeAllaTorre(List<DatiPiano> datiPiani) {
-        if (datiPiani.size() != torre.getNumeroPiani()) {
-            return false;
-        }
-        for (int indice = 0; indice < datiPiani.size(); indice++) {
-            if (datiPiani.get(indice).tipo() != torre.getPiano(indice + 1).getTipo()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isPianoSuperato() {
-        return battaglia != null ? battaglia.isVinta() : piano.isCompletato();
+    private String descriviProgresso() {
+        Giocatore giocatore = partita.getGiocatore();
+        return "piano " + partita.getNumeroPianoCorrente() + ", livello " + giocatore.getLivello()
+                + ", HP " + giocatore.getHp() + ".";
     }
 
     private void aggiornaCorridoio() {
-        etichettaPiano.setText("Piano " + numeroPiano + " di " + torre.getNumeroPiani()
-                + " - " + piano.getTipo());
+        etichettaPiano.setText("Piano " + partita.getNumeroPianoCorrente() + " di " + partita.getTotalePiani()
+                + " - " + partita.getPianoCorrente().getTipo());
         etichettaEroeCorridoio.setText(testoEroe());
         etichettaNemicoCorridoio.setText(testoNemico());
         nemico.setFill(coloreOggettoDelPiano());
-        nemico.setVisible(battaglia == null || battaglia.getNemico().isVivo());
-        porta.setFill(isPianoSuperato() ? Color.LIMEGREEN : Color.DARKGRAY);
+        nemico.setVisible(partita.getBattaglia().map(battaglia -> battaglia.getNemico().isVivo()).orElse(true));
+        porta.setFill(partita.isPianoSuperato() ? Color.LIMEGREEN : Color.DARKGRAY);
     }
 
     private void muoviEroe(double secondi) {
@@ -306,29 +274,30 @@ public class App extends Application {
     }
 
     private void controllaNemico() {
-        if (battaglia != null && !battaglia.isFinita()
+        Optional<Battaglia> battaglia = partita.getBattaglia();
+        if (battaglia.isPresent() && !battaglia.get().isFinita()
                 && eroe.getBoundsInParent().intersects(nemico.getBoundsInParent())) {
             iniziaCombattimento();
         }
     }
 
     private void controllaOggettoDelPiano() {
-        if (battaglia == null && !piano.isCompletato()
+        if (partita.getBattaglia().isEmpty() && !partita.getPianoCorrente().isCompletato()
                 && eroe.getBoundsInParent().intersects(nemico.getBoundsInParent())) {
-            etichettaMessaggio.setText("Piano " + numeroPiano + ": " + piano.entra(giocatore));
+            etichettaMessaggio.setText("Piano " + partita.getNumeroPianoCorrente() + ": "
+                    + partita.entraNelPianoCorrente());
             aggiornaCorridoio();
         }
     }
 
     private void controllaPorta() {
-        if (isPianoSuperato() && eroe.getBoundsInParent().intersects(porta.getBoundsInParent())) {
-            if (numeroPiano >= torre.getNumeroPiani()) {
+        if (partita.isPianoSuperato() && eroe.getBoundsInParent().intersects(porta.getBoundsInParent())) {
+            if (!partita.avanzaAlProssimoPiano()) {
                 etichettaMessaggio.setText("Hai conquistato la torre!");
                 timer.stop();
                 return;
             }
-            numeroPiano++;
-            iniziaPiano();
+            mostraPiano();
         }
     }
 
@@ -336,22 +305,24 @@ public class App extends Application {
         timer.stop();
         tasti.clear();
         log.clear();
-        log.appendText("--- " + battaglia.getNemico().getNome() + " ---\n");
+        log.appendText("--- " + battagliaInCorso().getNemico().getNome() + " ---\n");
         aggiornaCombattimento();
         finestra.setScene(scenaCombattimento);
     }
 
     private void attacca() {
-        log.appendText(battaglia.attaccaConEroe());
+        log.appendText(battagliaInCorso().attaccaConEroe());
         aggiornaCombattimento();
     }
 
     private void terminaTurno() {
-        log.appendText(battaglia.terminaTurnoGiocatore());
+        log.appendText(battagliaInCorso().terminaTurnoGiocatore());
         aggiornaCombattimento();
     }
 
     private void giocaCarta(int indice) {
+        Giocatore giocatore = partita.getGiocatore();
+        Battaglia battaglia = battagliaInCorso();
         Nemico nemicoDelPiano = battaglia.getNemico();
         int attaccoEroe = giocatore.getAttacco();
         int difesaEroe = giocatore.getDifesa();
@@ -375,16 +346,18 @@ public class App extends Application {
     }
 
     private void aggiornaCombattimento() {
+        Battaglia battaglia = battagliaInCorso();
         etichettaEroeCombattimento.setText(testoEroe());
         etichettaNemicoCombattimento.setText(testoNemico());
         aggiornaPulsantiCarte();
         pulsanteAttacca.setDisable(battaglia.isFinita()
-                || giocatore.getPuntiAzione() < Battaglia.COSTO_PA_ATTACCO_BASE);
+                || partita.getGiocatore().getPuntiAzione() < Battaglia.COSTO_PA_ATTACCO_BASE);
         pulsanteTerminaTurno.setDisable(battaglia.isFinita());
         pulsanteTorna.setDisable(!battaglia.isVinta());
     }
 
     private void tornaAlCorridoio() {
+        PianoTorre piano = partita.getPianoCorrente();
         etichettaMessaggio.setText(piano.getTipo() == TipoPiano.BOSS_FINALE
                 ? "Hai sconfitto il " + piano.getNemico().getNome() + "! Raggiungi la porta per uscire dalla torre."
                 : "Nemico sconfitto! Raggiungi la porta per salire.");
@@ -394,6 +367,7 @@ public class App extends Application {
     }
 
     private String testoEroe() {
+        Giocatore giocatore = partita.getGiocatore();
         return giocatore.getNome() + " - HP " + giocatore.getHp() + "/" + giocatore.getHpMax()
                 + " - PA " + giocatore.getPuntiAzione()
                 + " - Attacco " + giocatore.getAttacco() + " - Difesa " + giocatore.getDifesa()
@@ -402,25 +376,27 @@ public class App extends Application {
     }
 
     private String testoNemico() {
-        if (battaglia == null) {
-            return piano.getTipo() == TipoPiano.CASSA ? "Cassa" : "Fontana di lava";
+        Optional<Battaglia> battaglia = partita.getBattaglia();
+        if (battaglia.isEmpty()) {
+            return partita.getPianoCorrente().getTipo() == TipoPiano.CASSA ? "Cassa" : "Fontana di lava";
         }
-        Nemico nemicoDelPiano = battaglia.getNemico();
+        Nemico nemicoDelPiano = battaglia.get().getNemico();
         return nemicoDelPiano.getNome() + " - HP " + nemicoDelPiano.getHp() + "/" + nemicoDelPiano.getHpMax()
                 + " - Attacco " + nemicoDelPiano.getAttacco() + " - Difesa " + nemicoDelPiano.getDifesa();
     }
 
     private String testoInvito() {
-        return piano.getTipo() == TipoPiano.CASSA
+        return partita.getPianoCorrente().getTipo() == TipoPiano.CASSA
                 ? "raggiungi la cassa per aprirla."
                 : "raggiungi la fontana di lava per curarti.";
     }
 
     private Color coloreOggettoDelPiano() {
-        if (battaglia != null) {
-            return piano.getTipo() == TipoPiano.BOSS_FINALE ? Color.DARKVIOLET : Color.CRIMSON;
+        TipoPiano tipo = partita.getPianoCorrente().getTipo();
+        if (partita.getBattaglia().isPresent()) {
+            return tipo == TipoPiano.BOSS_FINALE ? Color.DARKVIOLET : Color.CRIMSON;
         }
-        return piano.getTipo() == TipoPiano.CASSA ? Color.SADDLEBROWN : Color.ORANGE;
+        return tipo == TipoPiano.CASSA ? Color.SADDLEBROWN : Color.ORANGE;
     }
 
     private static Label creaEtichetta(double x, double y) {

@@ -1,0 +1,131 @@
+package it.unicam.cs.mpgc.rpg126615.gioco;
+
+import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
+import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
+import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
+import it.unicam.cs.mpgc.rpg126615.persistenza.DatiPiano;
+import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+public class Partita {
+
+    public static final int PIANI_MINIMI = 10;
+    public static final int PIANI_MASSIMI = 999;
+
+    private static final String NOME_PREDEFINITO = "Eroe";
+    private static final int HP_INIZIALI_GIOCATORE = 100;
+    private static final int ATTACCO_INIZIALE_GIOCATORE = 12;
+
+    private final Giocatore giocatore;
+    private final Torre torre;
+    private int numeroPianoCorrente;
+    private Battaglia battaglia;
+
+    public Partita(Giocatore giocatore, Torre torre) {
+        if (giocatore == null || torre == null) {
+            throw new IllegalArgumentException("Giocatore e torre non possono essere nulli");
+        }
+        this.giocatore = giocatore;
+        this.torre = torre;
+        this.numeroPianoCorrente = 1;
+        preparaPianoCorrente();
+    }
+
+    public static boolean isNumeroPianiValido(int totalePiani) {
+        return totalePiani >= PIANI_MINIMI && totalePiani <= PIANI_MASSIMI;
+    }
+
+    public static Partita nuova(String nomeEroe, int totalePiani, Random random) {
+        if (!isNumeroPianiValido(totalePiani)) {
+            throw new IllegalArgumentException("Il numero di piani deve essere tra " + PIANI_MINIMI
+                    + " e " + PIANI_MASSIMI + ": " + totalePiani);
+        }
+        String nome = (nomeEroe == null || nomeEroe.isBlank()) ? NOME_PREDEFINITO : nomeEroe.trim();
+        Giocatore nuovoGiocatore = new Giocatore(nome, HP_INIZIALI_GIOCATORE, ATTACCO_INIZIALE_GIOCATORE);
+        Torre nuovaTorre = new Torre(new GeneratorePiani(random).generaPiani(totalePiani));
+        return new Partita(nuovoGiocatore, nuovaTorre);
+    }
+
+    public Giocatore getGiocatore() {
+        return giocatore;
+    }
+
+    public int getTotalePiani() {
+        return torre.getNumeroPiani();
+    }
+
+    public int getNumeroPianoCorrente() {
+        return numeroPianoCorrente;
+    }
+
+    public PianoTorre getPianoCorrente() {
+        return torre.getPiano(numeroPianoCorrente);
+    }
+
+    public Optional<Battaglia> getBattaglia() {
+        return Optional.ofNullable(battaglia);
+    }
+
+    public boolean haProssimoPiano() {
+        return numeroPianoCorrente < torre.getNumeroPiani();
+    }
+
+    public boolean isPianoSuperato() {
+        return battaglia != null ? battaglia.isVinta() : getPianoCorrente().isCompletato();
+    }
+
+    public String entraNelPianoCorrente() {
+        return getPianoCorrente().entra(giocatore);
+    }
+
+    public boolean avanzaAlProssimoPiano() {
+        if (!haProssimoPiano()) {
+            return false;
+        }
+        numeroPianoCorrente++;
+        preparaPianoCorrente();
+        return true;
+    }
+
+    public DatiSalvataggio creaDatiSalvataggio() {
+        List<DatiPiano> datiPiani = new ArrayList<>();
+        for (int numero = 1; numero <= torre.getNumeroPiani(); numero++) {
+            PianoTorre piano = torre.getPiano(numero);
+            String informazione = piano.haNemico() ? piano.getNemico().getNome() : "";
+            datiPiani.add(new DatiPiano(piano.getTipo(), piano.isCompletato(), informazione));
+        }
+        return new DatiSalvataggio(numeroPianoCorrente, giocatore.getStato(), datiPiani);
+    }
+
+    public void ripristina(DatiSalvataggio dati) {
+        if (!corrispondeAllaTorre(dati.piani())) {
+            throw new IllegalArgumentException("Il salvataggio non corrisponde alla torre attuale");
+        }
+        giocatore.applicaStato(dati.giocatore());
+        numeroPianoCorrente = dati.pianoCorrente();
+        preparaPianoCorrente();
+    }
+
+    private boolean corrispondeAllaTorre(List<DatiPiano> datiPiani) {
+        if (datiPiani.size() != torre.getNumeroPiani()) {
+            return false;
+        }
+        for (int indice = 0; indice < datiPiani.size(); indice++) {
+            if (datiPiani.get(indice).tipo() != torre.getPiano(indice + 1).getTipo()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void preparaPianoCorrente() {
+        PianoTorre piano = getPianoCorrente();
+        battaglia = piano.haNemico() ? new Battaglia(giocatore, piano.getNemico()) : null;
+    }
+}
