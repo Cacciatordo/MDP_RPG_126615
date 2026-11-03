@@ -8,13 +8,22 @@ import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
+import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggi;
+import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggiFile;
+import it.unicam.cs.mpgc.rpg126615.persistenza.DatiPiano;
+import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.persistenza.ErrorePersistenzaException;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
@@ -25,14 +34,20 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
 public class App extends Application {
 
     private static final int NUMERO_PIANI = 20;
+    private static final long SEME_TORRE = 126615L;
+    private static final Path CARTELLA_SALVATAGGI = Path.of("salvataggi");
+    private static final String NOME_PREDEFINITO = "salvataggio1";
 
     private static final double LARGHEZZA = 764;
     private static final double ALTEZZA = 360;
@@ -52,6 +67,8 @@ public class App extends Application {
     private Battaglia battaglia;
     private int numeroPiano = 1;
 
+    private final ArchivioSalvataggi archivio = new ArchivioSalvataggiFile(CARTELLA_SALVATAGGI);
+
     private Stage finestra;
     private Scene scenaCorridoio;
     private Scene scenaCombattimento;
@@ -64,6 +81,9 @@ public class App extends Application {
     private final Label etichettaEroeCorridoio = creaEtichetta(15, 32);
     private final Label etichettaNemicoCorridoio = creaEtichetta(15, 54);
     private final Label etichettaMessaggio = creaEtichetta(15, 90);
+
+    private final Button pulsanteSalva = new Button("Salva");
+    private final Button pulsanteCarica = new Button("Carica");
 
     private final Label etichettaEroeCombattimento = new Label();
     private final Label etichettaNemicoCombattimento = new Label();
@@ -80,7 +100,7 @@ public class App extends Application {
     public void start(Stage stage) {
         finestra = stage;
         giocatore = new Giocatore("Eroe", 100, 12);
-        torre = new Torre(new GeneratorePiani(new Random()).generaPiani(NUMERO_PIANI));
+        torre = new Torre(new GeneratorePiani(new Random(SEME_TORRE)).generaPiani(NUMERO_PIANI));
         scenaCorridoio = creaScenaCorridoio();
         scenaCombattimento = creaScenaCombattimento();
         iniziaPiano();
@@ -111,8 +131,17 @@ public class App extends Application {
         etichettaMessaggio.setWrapText(true);
         etichettaMessaggio.setMaxWidth(LARGHEZZA - 30);
 
+        pulsanteSalva.setFocusTraversable(false);
+        pulsanteCarica.setFocusTraversable(false);
+        pulsanteSalva.setOnAction(e -> salvaPartita());
+        pulsanteCarica.setOnAction(e -> caricaPartita());
+        HBox pulsantiSalvataggio = new HBox(10, pulsanteSalva, pulsanteCarica);
+        pulsantiSalvataggio.setLayoutX(15);
+        pulsantiSalvataggio.setLayoutY(130);
+
         radice.getChildren().addAll(pavimento, porta, nemico, eroe, etichettaPiano,
-                etichettaEroeCorridoio, etichettaNemicoCorridoio, etichettaMessaggio, suggerimento);
+                etichettaEroeCorridoio, etichettaNemicoCorridoio, etichettaMessaggio,
+                pulsantiSalvataggio, suggerimento);
 
         Scene scena = new Scene(radice, LARGHEZZA, ALTEZZA);
         scena.setOnKeyPressed(e -> tasti.add(e.getCode()));
@@ -160,6 +189,94 @@ public class App extends Application {
         }
         eroe.setX(20);
         aggiornaCorridoio();
+    }
+
+    private void salvaPartita() {
+        tasti.clear();
+        TextInputDialog dialogo = new TextInputDialog(NOME_PREDEFINITO);
+        dialogo.setTitle("Salva");
+        dialogo.setHeaderText("Nome del salvataggio (lettere, numeri, - e _)");
+        dialogo.setContentText("Nome:");
+        Optional<String> risposta = dialogo.showAndWait();
+        if (risposta.isEmpty()) {
+            return;
+        }
+        String nome = risposta.get().trim();
+        try {
+            if (archivio.esiste(nome) && !confermaSovrascrittura(nome)) {
+                return;
+            }
+            archivio.salva(nome, creaDatiSalvataggio());
+            etichettaMessaggio.setText("Partita salvata come '" + nome + "': piano " + numeroPiano
+                    + ", livello " + giocatore.getLivello() + ", HP " + giocatore.getHp() + ".");
+        } catch (IllegalArgumentException e) {
+            etichettaMessaggio.setText("Nome non valido: " + e.getMessage());
+        } catch (ErrorePersistenzaException e) {
+            etichettaMessaggio.setText("Salvataggio non riuscito: " + e.getMessage());
+        }
+    }
+
+    private DatiSalvataggio creaDatiSalvataggio() {
+        List<DatiPiano> datiPiani = new ArrayList<>();
+        for (int numero = 1; numero <= torre.getNumeroPiani(); numero++) {
+            PianoTorre pianoDaSalvare = torre.getPiano(numero);
+            String informazione = pianoDaSalvare.haNemico() ? pianoDaSalvare.getNemico().getNome() : "";
+            datiPiani.add(new DatiPiano(pianoDaSalvare.getTipo(), pianoDaSalvare.isCompletato(), informazione));
+        }
+        return new DatiSalvataggio(numeroPiano, giocatore.getStato(), datiPiani);
+    }
+
+    private boolean confermaSovrascrittura(String nome) {
+        Alert avviso = new Alert(Alert.AlertType.CONFIRMATION,
+                "Il salvataggio '" + nome + "' esiste già. Vuoi sovrascriverlo?",
+                ButtonType.YES, ButtonType.NO);
+        return avviso.showAndWait().filter(risposta -> risposta == ButtonType.YES).isPresent();
+    }
+
+    private void caricaPartita() {
+        tasti.clear();
+        try {
+            List<String> nomi = archivio.elencaNomi();
+            if (nomi.isEmpty()) {
+                etichettaMessaggio.setText("Nessun salvataggio trovato.");
+                return;
+            }
+            ChoiceDialog<String> dialogo = new ChoiceDialog<>(nomi.get(0), nomi);
+            dialogo.setTitle("Carica");
+            dialogo.setHeaderText("Scegli il salvataggio da caricare");
+            dialogo.setContentText("Salvataggio:");
+            Optional<String> scelto = dialogo.showAndWait();
+            if (scelto.isEmpty()) {
+                return;
+            }
+            applicaSalvataggio(scelto.get(), archivio.carica(scelto.get()));
+        } catch (ErrorePersistenzaException e) {
+            etichettaMessaggio.setText("Caricamento non riuscito: " + e.getMessage());
+        }
+    }
+
+    private void applicaSalvataggio(String nome, DatiSalvataggio dati) {
+        if (!corrispondeAllaTorre(dati.piani())) {
+            etichettaMessaggio.setText("Il salvataggio '" + nome + "' non corrisponde alla torre attuale.");
+            return;
+        }
+        giocatore.applicaStato(dati.giocatore());
+        numeroPiano = dati.pianoCorrente();
+        iniziaPiano();
+        etichettaMessaggio.setText("Partita '" + nome + "' caricata: piano " + numeroPiano
+                + ", livello " + giocatore.getLivello() + ", HP " + giocatore.getHp() + ".");
+    }
+
+    private boolean corrispondeAllaTorre(List<DatiPiano> datiPiani) {
+        if (datiPiani.size() != torre.getNumeroPiani()) {
+            return false;
+        }
+        for (int indice = 0; indice < datiPiani.size(); indice++) {
+            if (datiPiani.get(indice).tipo() != torre.getPiano(indice + 1).getTipo()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isPianoSuperato() {
