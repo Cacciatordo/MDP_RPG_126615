@@ -33,4 +33,15 @@ public class GestoreLivello {
         }
         return livello - livelloPrima;
     }
+
+    public void ripristina(int livello, int esperienza) {
+        if (livello < LIVELLO_INIZIALE) {
+            throw new IllegalArgumentException("Il livello non può essere minore di " + LIVELLO_INIZIALE);
+        }
+        if (esperienza < 0) {
+            throw new IllegalArgumentException("L'esperienza non può essere negativa");
+        }
+        this.livello = livello;
+        this.esperienza = esperienza;
+    }
 }

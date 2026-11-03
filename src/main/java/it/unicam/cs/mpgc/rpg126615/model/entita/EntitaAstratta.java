@@ -6,7 +6,7 @@ public abstract class EntitaAstratta implements Combattente {
 
     private final String nome;
     private final int attaccoBase;
-    private final int hpMax;
+    private int hpMax;
     private int hp;
     private int modificatoreAttacco;
     private int difesa;
@@ -99,5 +99,13 @@ public abstract class EntitaAstratta implements Combattente {
     @Override
     public boolean isVivo() {
         return hp > 0;
+    }
+
+    protected void ripristinaHp(int punti, int massimo) {
+        if (massimo <= 0) {
+            throw new IllegalArgumentException("Gli HP massimi devono essere positivi");
+        }
+        hpMax = massimo;
+        hp = Math.max(0, Math.min(punti, massimo));
     }
 }

@@ -84,6 +84,18 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
         difesaPermanente += bonus;
     }
 
+    public StatoGiocatore getStato() {
+        return new StatoGiocatore(getNome(), getLivello(), getEsperienza(), getHp(), getHpMax(),
+                bonusAttaccoPermanente, difesaPermanente);
+    }
+
+    public void applicaStato(StatoGiocatore stato) {
+        gestoreLivello.ripristina(stato.livello(), stato.esperienza());
+        ripristinaHp(stato.hp(), stato.hpMax());
+        bonusAttaccoPermanente = stato.bonusAttaccoPermanente();
+        difesaPermanente = stato.difesaPermanente();
+    }
+
     @Override
     public int getAttacco() {
         return super.getAttacco() + bonusAttaccoPermanente;
