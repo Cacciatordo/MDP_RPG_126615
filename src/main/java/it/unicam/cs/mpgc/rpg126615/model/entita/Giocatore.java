@@ -76,6 +76,10 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
         gestoreLivello.aggiungiEsperienza(xp);
     }
 
+    public void perdiEsperienza(int xp) {
+        gestoreLivello.perdiEsperienza(xp);
+    }
+
     public void aggiungiBonusAttacco(int bonus) {
         bonusAttaccoPermanente += bonus;
     }

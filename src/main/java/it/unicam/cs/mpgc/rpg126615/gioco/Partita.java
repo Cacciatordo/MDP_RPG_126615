@@ -2,8 +2,10 @@ package it.unicam.cs.mpgc.rpg126615.gioco;
 
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
+import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
 import it.unicam.cs.mpgc.rpg126615.persistenza.DatiPiano;
 import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
@@ -17,6 +19,7 @@ public class Partita {
 
     public static final int PIANI_MINIMI = 10;
     public static final int PIANI_MASSIMI = 999;
+    public static final int PENALITA_XP_SCONFITTA = 25;
 
     private static final String NOME_PREDEFINITO = "Eroe";
     private static final int HP_INIZIALI_GIOCATORE = 100;
@@ -80,6 +83,10 @@ public class Partita {
         return battaglia != null ? battaglia.isVinta() : getPianoCorrente().isCompletato();
     }
 
+    public boolean isGiocatoreSconfitto() {
+        return !giocatore.isVivo();
+    }
+
     public String entraNelPianoCorrente() {
         return getPianoCorrente().entra(giocatore);
     }
@@ -91,6 +98,21 @@ public class Partita {
         numeroPianoCorrente++;
         preparaPianoCorrente();
         return true;
+    }
+
+    public void ritiratiDopoSconfitta() {
+        if (giocatore.isVivo()) {
+            throw new IllegalStateException("Il giocatore è ancora vivo");
+        }
+        PianoTorre pianoDellaSconfitta = getPianoCorrente();
+        if (pianoDellaSconfitta.haNemico()) {
+            Nemico nemico = pianoDellaSconfitta.getNemico();
+            nemico.cura(nemico.getHpMax());
+        }
+        giocatore.perdiEsperienza(PENALITA_XP_SCONFITTA);
+        giocatore.cura(giocatore.getHpMax());
+        numeroPianoCorrente = trovaPianoDiRipartenza();
+        preparaPianoCorrente();
     }
 
     public DatiSalvataggio creaDatiSalvataggio() {
@@ -110,6 +132,15 @@ public class Partita {
         giocatore.applicaStato(dati.giocatore());
         numeroPianoCorrente = dati.pianoCorrente();
         preparaPianoCorrente();
+    }
+
+    private int trovaPianoDiRipartenza() {
+        for (int numero = numeroPianoCorrente - 1; numero >= 1; numero--) {
+            if (torre.getPiano(numero).getTipo() == TipoPiano.RIPOSO) {
+                return numero;
+            }
+        }
+        return 1;
     }
 
     private boolean corrispondeAllaTorre(List<DatiPiano> datiPiani) {

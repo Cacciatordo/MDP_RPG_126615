@@ -34,6 +34,13 @@ public class GestoreLivello {
         return livello - livelloPrima;
     }
 
+    public void perdiEsperienza(int xp) {
+        if (xp < 0) {
+            throw new IllegalArgumentException("L'esperienza persa non può essere negativa");
+        }
+        esperienza = Math.max(0, esperienza - xp);
+    }
+
     public void ripristina(int livello, int esperienza) {
         if (livello < LIVELLO_INIZIALE) {
             throw new IllegalArgumentException("Il livello non può essere minore di " + LIVELLO_INIZIALE);

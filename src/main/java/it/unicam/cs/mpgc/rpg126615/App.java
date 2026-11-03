@@ -1,12 +1,12 @@
 package it.unicam.cs.mpgc.rpg126615;
 
+import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
-import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggi;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggiFile;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ErrorePersistenzaException;
@@ -45,6 +45,8 @@ public class App extends Application {
     private static final long SEME_TORRE = 126615L;
     private static final Path CARTELLA_SALVATAGGI = Path.of("salvataggi");
     private static final String NOME_PREDEFINITO = "salvataggio1";
+    private static final String TESTO_TORNA = "Torna al corridoio";
+    private static final String TESTO_RITIRATI = "Ritirati";
 
     private static final double LARGHEZZA = 764;
     private static final double ALTEZZA = 360;
@@ -84,7 +86,7 @@ public class App extends Application {
     private final FlowPane pulsantiCarte = new FlowPane(10, 10);
     private final Button pulsanteAttacca = new Button("Attacca (1 PA)");
     private final Button pulsanteTerminaTurno = new Button("Termina turno");
-    private final Button pulsanteTorna = new Button("Torna al corridoio");
+    private final Button pulsanteTorna = new Button(TESTO_TORNA);
 
     private final Set<KeyCode> tasti = EnumSet.noneOf(KeyCode.class);
     private final AnimationTimer timer = creaTimer();
@@ -347,23 +349,36 @@ public class App extends Application {
 
     private void aggiornaCombattimento() {
         Battaglia battaglia = battagliaInCorso();
+        boolean sconfitto = partita.isGiocatoreSconfitto();
         etichettaEroeCombattimento.setText(testoEroe());
         etichettaNemicoCombattimento.setText(testoNemico());
         aggiornaPulsantiCarte();
         pulsanteAttacca.setDisable(battaglia.isFinita()
                 || partita.getGiocatore().getPuntiAzione() < Battaglia.COSTO_PA_ATTACCO_BASE);
         pulsanteTerminaTurno.setDisable(battaglia.isFinita());
-        pulsanteTorna.setDisable(!battaglia.isVinta());
+        pulsanteTorna.setText(sconfitto ? TESTO_RITIRATI : TESTO_TORNA);
+        pulsanteTorna.setDisable(!battaglia.isVinta() && !sconfitto);
     }
 
     private void tornaAlCorridoio() {
-        PianoTorre piano = partita.getPianoCorrente();
-        etichettaMessaggio.setText(piano.getTipo() == TipoPiano.BOSS_FINALE
-                ? "Hai sconfitto il " + piano.getNemico().getNome() + "! Raggiungi la porta per uscire dalla torre."
-                : "Nemico sconfitto! Raggiungi la porta per salire.");
-        aggiornaCorridoio();
+        if (partita.isGiocatoreSconfitto()) {
+            ritiratiDopoSconfitta();
+        } else {
+            PianoTorre piano = partita.getPianoCorrente();
+            etichettaMessaggio.setText(piano.getTipo() == TipoPiano.BOSS_FINALE
+                    ? "Hai sconfitto il " + piano.getNemico().getNome() + "! Raggiungi la porta per uscire dalla torre."
+                    : "Nemico sconfitto! Raggiungi la porta per salire.");
+            aggiornaCorridoio();
+        }
         finestra.setScene(scenaCorridoio);
         timer.start();
+    }
+
+    private void ritiratiDopoSconfitta() {
+        partita.ritiratiDopoSconfitta();
+        mostraPiano();
+        etichettaMessaggio.setText("Sei stato sconfitto: perdi " + Partita.PENALITA_XP_SCONFITTA
+                + " XP e recuperi tutti gli HP. Riparti dal piano " + partita.getNumeroPianoCorrente() + ".");
     }
 
     private String testoEroe() {
