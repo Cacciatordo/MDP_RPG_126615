@@ -1,0 +1,12 @@
+Crediti delle immagini
+
+Tutte le immagini provengono da pack con licenza CC0 (Creative Commons Zero v1.0, uso libero).
+I crediti sono indicati per correttezza verso gli autori.
+
+- Personaggi e ambiente: "DungeonTileset II" di 0x72 (CC0)
+  https://0x72.itch.io/dungeontileset-ii
+- tappeto_arena.png: dal pack "DungeonTileset II Extended" di Niji (CC0)
+  https://nijikokun.itch.io/dungeontileset-ii-extended
+- torcia_f0..f7.png: dal pack "16x16 Dungeon Tileset" di 0x72 (CC0)
+  https://0x72.itch.io/16x16-dungeon-tileset
+- scala_sale.png e scala_scende.png: adattamenti di floor_stairs (DungeonTileset II, 0x72, CC0).
