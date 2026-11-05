@@ -46,6 +46,7 @@ public class VistaCorridoio {
     private static final String STILE_BARRA_HP = "-fx-accent: " + Tema.VERDE + ";";
 
     private final double larghezza;
+    private final EntitaCorridoio entitaCentrale;
     private final Label etichettaPiano = creaEtichetta(20, Tema.ORO);
     private final Label etichettaEroe = creaEtichetta(14, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
@@ -63,9 +64,11 @@ public class VistaCorridoio {
     public VistaCorridoio(double larghezza, double altezza, Partita partita, Runnable suEntra,
                           Runnable suProssimoPiano) {
         this.larghezza = larghezza;
+        this.entitaCentrale = new EntitaCorridoio(larghezza, Y_PIEDI_EROE);
         this.posizioneEroe = larghezza * POSIZIONE_INIZIALE_EROE;
         StackPane radice = new StackPane(creaScenario(larghezza, altezza),
                 creaInterfaccia(suEntra, suProssimoPiano));
+        this.entitaCentrale.mostra(partita.getPianoCorrente());
         this.scena = new Scene(radice, larghezza, altezza);
         this.scena.setOnKeyPressed(evento -> this.tastiPremuti.add(evento.getCode()));
         this.scena.setOnKeyReleased(evento -> this.tastiPremuti.remove(evento.getCode()));
@@ -84,6 +87,7 @@ public class VistaCorridoio {
         scenario.setMaxSize(larghezzaScena, altezzaScena);
         scenario.setClip(new Rectangle(larghezzaScena, altezzaScena));
         scenario.getChildren().add(ScenarioCorridoio.crea(larghezzaScena, altezzaScena));
+        scenario.getChildren().add(this.entitaCentrale.getLivello());
 
         this.spriteCorsa.setVisible(false);
         this.postazioneEroe.setAlignment(Pos.BOTTOM_CENTER);
@@ -183,10 +187,12 @@ public class VistaCorridoio {
             this.movimento.stop();
             this.spriteFermo.ferma();
             this.spriteCorsa.ferma();
+            this.entitaCentrale.ferma();
             this.tastiPremuti.clear();
         } else {
             this.spriteFermo.avvia();
             this.spriteCorsa.avvia();
+            this.entitaCentrale.avvia();
             this.movimento.start();
         }
     }
