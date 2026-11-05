@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg126615.ui.view;
 import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
+import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
 import javafx.animation.AnimationTimer;
@@ -12,8 +13,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -26,19 +25,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Window;
 
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 public class VistaCorridoio {
-
-    private static final int SCALA_AMBIENTE = 4;
-    private static final int LATO_MATTONELLA = 16;
-    private static final int LATO = LATO_MATTONELLA * SCALA_AMBIENTE;
-    private static final int RIGHE_MURO = 6;
-    private static final int SEME = 7;
-    private static final String MURO = "wall_mid";
-    private static final List<String> PAVIMENTO = List.of("floor_1", "floor_2", "floor_3");
 
     private static final int SCALA_EROE = 3;
     private static final String EROE_FERMO = "knight_m_idle_anim";
@@ -94,7 +83,7 @@ public class VistaCorridoio {
         scenario.setPrefSize(larghezzaScena, altezzaScena);
         scenario.setMaxSize(larghezzaScena, altezzaScena);
         scenario.setClip(new Rectangle(larghezzaScena, altezzaScena));
-        aggiungiSfondo(scenario, larghezzaScena, altezzaScena);
+        scenario.getChildren().add(ScenarioCorridoio.crea(larghezzaScena, altezzaScena));
 
         this.spriteCorsa.setVisible(false);
         this.postazioneEroe.setAlignment(Pos.BOTTOM_CENTER);
@@ -102,26 +91,6 @@ public class VistaCorridoio {
         this.postazioneEroe.setLayoutX(Math.round(this.posizioneEroe));
         scenario.getChildren().add(this.postazioneEroe);
         return scenario;
-    }
-
-    private void aggiungiSfondo(Pane scenario, double larghezzaScena, double altezzaScena) {
-        Image muro = PixelArt.carica(PixelArt.AMBIENTE, MURO, SCALA_AMBIENTE);
-        List<Image> pavimenti = PAVIMENTO.stream()
-                .map(nome -> PixelArt.carica(PixelArt.AMBIENTE, nome, SCALA_AMBIENTE))
-                .toList();
-        Random caso = new Random(SEME);
-        int colonne = (int) Math.ceil(larghezzaScena / LATO);
-        int righe = (int) Math.ceil(altezzaScena / LATO);
-        for (int riga = 0; riga < righe; riga++) {
-            for (int colonna = 0; colonna < colonne; colonna++) {
-                Image mattonella = riga < RIGHE_MURO ? muro : pavimenti.get(caso.nextInt(pavimenti.size()));
-                ImageView vista = new ImageView(mattonella);
-                vista.setSmooth(false);
-                vista.setLayoutX(colonna * LATO);
-                vista.setLayoutY(riga * LATO);
-                scenario.getChildren().add(vista);
-            }
-        }
     }
 
     private BorderPane creaInterfaccia(Runnable suEntra, Runnable suProssimoPiano) {
