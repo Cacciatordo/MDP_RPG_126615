@@ -83,6 +83,10 @@ public class Partita {
         return battaglia != null ? battaglia.isVinta() : getPianoCorrente().isCompletato();
     }
 
+    public boolean isPassaggioLibero() {
+        return isPianoSuperato() || getPianoCorrente().getTipo() == TipoPiano.RIPOSO;
+    }
+
     public boolean isGiocatoreSconfitto() {
         return !giocatore.isVivo();
     }
