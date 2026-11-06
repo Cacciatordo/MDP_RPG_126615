@@ -1,5 +1,7 @@
-package it.unicam.cs.mpgc.rpg126615.ui.pixelart;
+package it.unicam.cs.mpgc.rpg126615.ui.view.corridoio;
 
+import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
+import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;

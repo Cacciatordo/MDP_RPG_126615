@@ -1,12 +1,12 @@
-package it.unicam.cs.mpgc.rpg126615.ui.view;
+package it.unicam.cs.mpgc.rpg126615.ui.view.corridoio;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
-import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ArredoCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpritePersonaggio;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
+import it.unicam.cs.mpgc.rpg126615.ui.view.AspettoAvversario;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;

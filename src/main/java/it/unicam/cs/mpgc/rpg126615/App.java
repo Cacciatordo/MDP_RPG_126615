@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615;
 
 import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
-import it.unicam.cs.mpgc.rpg126615.ui.view.VistaCorridoio;
+import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.VistaCorridoio;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
