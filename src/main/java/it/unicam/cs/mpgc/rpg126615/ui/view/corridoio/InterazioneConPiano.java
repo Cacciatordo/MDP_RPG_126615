@@ -4,25 +4,27 @@ import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 
-public class InterazioneCassa {
+public class InterazioneConPiano {
 
     private static final double DISTANZA_MASSIMA = 110;
 
     private final Partita partita;
-    private final double centroCassa;
+    private final double centroEntita;
+    private final TipoPiano tipo;
 
-    public InterazioneCassa(Partita partita, double centroCassa) {
+    public InterazioneConPiano(Partita partita, double centroEntita, TipoPiano tipo) {
         this.partita = partita;
-        this.centroCassa = centroCassa;
+        this.centroEntita = centroEntita;
+        this.tipo = tipo;
     }
 
     public boolean isDisponibile(double centroEroe) {
         PianoTorre piano = this.partita.getPianoCorrente();
-        boolean cassaDaAprire = piano.getTipo() == TipoPiano.CASSA && !piano.isCompletato();
-        return cassaDaAprire && Math.abs(centroEroe - this.centroCassa) <= DISTANZA_MASSIMA;
+        boolean daUsare = piano.getTipo() == this.tipo && !piano.isCompletato();
+        return daUsare && Math.abs(centroEroe - this.centroEntita) <= DISTANZA_MASSIMA;
     }
 
-    public String apri() {
+    public String esegui() {
         return this.partita.entraNelPianoCorrente();
     }
 }
