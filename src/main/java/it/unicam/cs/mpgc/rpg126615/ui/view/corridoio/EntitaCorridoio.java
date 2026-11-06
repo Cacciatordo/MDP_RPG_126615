@@ -39,6 +39,10 @@ public class EntitaCorridoio {
         return this.livello;
     }
 
+    public double getCentroX() {
+        return this.centroOrizzontale;
+    }
+
     public void mostra(PianoTorre piano) {
         switch (piano.getTipo()) {
             case COMBATTIMENTO, BOSS, BOSS_FINALE -> mostraAvversario(piano);
