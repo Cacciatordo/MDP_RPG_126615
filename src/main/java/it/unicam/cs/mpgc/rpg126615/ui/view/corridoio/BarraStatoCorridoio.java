@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 public class BarraStatoCorridoio {
 
@@ -23,6 +24,7 @@ public class BarraStatoCorridoio {
     private static final int DIMENSIONE_NOME = 14;
     private static final int DIMENSIONE_TESTO = 13;
     private static final double LARGHEZZA_BARRA_HP = 200;
+    private static final double LARGHEZZA_MASSIMA_MESSAGGIO = 780;
     private static final double SPAZIO_STATO = 12;
     private static final double SPAZIO_RIGHE = 6;
     private static final double MARGINE = 10;
@@ -31,6 +33,7 @@ public class BarraStatoCorridoio {
     private final Label etichettaEroe = creaEtichetta(DIMENSIONE_NOME, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
     private final Label etichettaHp = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final Label etichettaMessaggio = creaEtichetta(DIMENSIONE_TESTO, Tema.ORO);
     private final VBox contenitore;
 
     public BarraStatoCorridoio() {
@@ -39,10 +42,16 @@ public class BarraStatoCorridoio {
         this.barraHp.setPrefWidth(LARGHEZZA_BARRA_HP);
         this.barraHp.setStyle(STILE_BARRA_HP);
 
+        this.etichettaMessaggio.setWrapText(true);
+        this.etichettaMessaggio.setMaxWidth(LARGHEZZA_MASSIMA_MESSAGGIO);
+        this.etichettaMessaggio.setTextAlignment(TextAlignment.CENTER);
+        this.etichettaMessaggio.setVisible(false);
+        this.etichettaMessaggio.setManaged(false);
+
         HBox stato = new HBox(SPAZIO_STATO, this.etichettaEroe, this.barraHp, this.etichettaHp);
         stato.setAlignment(Pos.CENTER);
 
-        this.contenitore = new VBox(SPAZIO_RIGHE, this.etichettaPiano, stato, guida);
+        this.contenitore = new VBox(SPAZIO_RIGHE, this.etichettaPiano, stato, guida, this.etichettaMessaggio);
         this.contenitore.setAlignment(Pos.CENTER);
         this.contenitore.setPadding(new Insets(MARGINE));
         this.contenitore.setStyle(STILE);
@@ -58,6 +67,12 @@ public class BarraStatoCorridoio {
         this.etichettaEroe.setText(giocatore.getNome() + "  Liv " + giocatore.getLivello());
         this.barraHp.setProgress(Math.max(0, (double) giocatore.getHp() / giocatore.getHpMax()));
         this.etichettaHp.setText("HP " + giocatore.getHp() + "/" + giocatore.getHpMax());
+    }
+
+    public void mostraMessaggio(String messaggio) {
+        this.etichettaMessaggio.setText(messaggio);
+        this.etichettaMessaggio.setVisible(true);
+        this.etichettaMessaggio.setManaged(true);
     }
 
     private static Label creaEtichetta(int dimensione, String colore) {
