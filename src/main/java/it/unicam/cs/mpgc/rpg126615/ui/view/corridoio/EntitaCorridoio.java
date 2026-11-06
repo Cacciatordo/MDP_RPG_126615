@@ -23,6 +23,10 @@ public class EntitaCorridoio {
 
     private static final double VERSO_SINISTRA = -1;
     private static final String STILE_SUGGERIMENTO = "-fx-font-family: '" + Tema.FONT + "'; -fx-font-size: 9px;";
+    private static final String DESCRIZIONE_CASSA_CHIUSA = "Antica cassa: aprila per trovare un premio... o una trappola!";
+    private static final String DESCRIZIONE_CASSA_APERTA = "La cassa è stata aperta.";
+    private static final String DESCRIZIONE_FONTANA_ACCESA = "Fontana di lava: riposa e recupera i tuoi HP!";
+    private static final String DESCRIZIONE_FONTANA_SPENTA = "La lava si è raffreddata: la fontana non ha più effetto.";
 
     private final Pane livello = new Pane();
     private final double centroOrizzontale;
@@ -46,9 +50,17 @@ public class EntitaCorridoio {
     public void mostra(PianoTorre piano) {
         switch (piano.getTipo()) {
             case COMBATTIMENTO, BOSS, BOSS_FINALE -> mostraAvversario(piano);
-            case CASSA -> mostraCassa();
-            case RIPOSO -> mostraFontana();
+            case CASSA -> mostraCassa(piano);
+            case RIPOSO -> mostraFontana(piano);
         }
+    }
+
+    public void aggiorna(PianoTorre piano) {
+        ferma();
+        this.animazioni.clear();
+        this.livello.getChildren().clear();
+        mostra(piano);
+        avvia();
     }
 
     public void avvia() {
@@ -77,16 +89,26 @@ public class EntitaCorridoio {
                 aspetto.descrivi(nemico.getNome()));
     }
 
-    private void mostraCassa() {
-        aggiungi(ArredoCorridoio.cassaChiusa(), ArredoCorridoio.LATO, ArredoCorridoio.LATO,
-                "Antica cassa: aprila per trovare un premio... o una trappola!");
+    private void mostraCassa(PianoTorre piano) {
+        if (piano.isCompletato()) {
+            aggiungi(ArredoCorridoio.cassaAperta(), ArredoCorridoio.LATO, ArredoCorridoio.LATO,
+                    DESCRIZIONE_CASSA_APERTA);
+        } else {
+            aggiungi(ArredoCorridoio.cassaChiusa(), ArredoCorridoio.LATO, ArredoCorridoio.LATO,
+                    DESCRIZIONE_CASSA_CHIUSA);
+        }
     }
 
-    private void mostraFontana() {
-        ArredoCorridoio.Fontana fontana = ArredoCorridoio.fontanaAccesa();
-        this.animazioni.addAll(fontana.animazioni());
-        aggiungi(fontana.nodo(), ArredoCorridoio.LATO, ArredoCorridoio.ALTEZZA_FONTANA,
-                "Fontana di lava: riposa e recupera i tuoi HP!");
+    private void mostraFontana(PianoTorre piano) {
+        if (piano.isCompletato()) {
+            aggiungi(ArredoCorridoio.fontanaSpenta(), ArredoCorridoio.LATO, ArredoCorridoio.ALTEZZA_FONTANA,
+                    DESCRIZIONE_FONTANA_SPENTA);
+        } else {
+            ArredoCorridoio.Fontana fontana = ArredoCorridoio.fontanaAccesa();
+            this.animazioni.addAll(fontana.animazioni());
+            aggiungi(fontana.nodo(), ArredoCorridoio.LATO, ArredoCorridoio.ALTEZZA_FONTANA,
+                    DESCRIZIONE_FONTANA_ACCESA);
+        }
     }
 
     private void aggiungi(Node nodo, double larghezza, double altezza, String descrizione) {
