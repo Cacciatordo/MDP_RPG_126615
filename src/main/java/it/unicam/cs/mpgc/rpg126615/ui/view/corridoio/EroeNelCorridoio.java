@@ -22,6 +22,7 @@ public class EroeNelCorridoio {
     private static final double NANOSECONDI_PER_SECONDO = 1_000_000_000.0;
 
     private final double larghezzaScena;
+    private final Runnable dopoOgniSpostamento;
     private final SpriteAnimato spriteFermo = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_FERMO, SCALA);
     private final SpriteAnimato spriteCorsa = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_CORSA, SCALA);
     private final StackPane postazione = new StackPane(this.spriteFermo, this.spriteCorsa);
@@ -30,8 +31,9 @@ public class EroeNelCorridoio {
 
     private double posizione;
 
-    public EroeNelCorridoio(double larghezzaScena, double yPiedi) {
+    public EroeNelCorridoio(double larghezzaScena, double yPiedi, Runnable dopoOgniSpostamento) {
         this.larghezzaScena = larghezzaScena;
+        this.dopoOgniSpostamento = dopoOgniSpostamento;
         this.posizione = larghezzaScena * POSIZIONE_INIZIALE;
         this.spriteCorsa.setVisible(false);
         this.postazione.setAlignment(Pos.BOTTOM_CENTER);
@@ -41,6 +43,10 @@ public class EroeNelCorridoio {
 
     public Node getNodo() {
         return this.postazione;
+    }
+
+    public double getCentroX() {
+        return this.posizione + this.spriteFermo.getImage().getWidth() / 2;
     }
 
     public void tastoPremuto(KeyCode tasto) {
@@ -83,6 +89,7 @@ public class EroeNelCorridoio {
         this.posizione = Math.max(minimo, Math.min(massimo, nuovaPosizione));
         this.postazione.setLayoutX(Math.round(this.posizione));
         this.postazione.setScaleX(direzione);
+        this.dopoOgniSpostamento.run();
     }
 
     private class CicloMovimento extends AnimationTimer {
