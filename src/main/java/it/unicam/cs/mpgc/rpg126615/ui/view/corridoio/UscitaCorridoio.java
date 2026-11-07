@@ -62,7 +62,7 @@ public class UscitaCorridoio {
 
     public void aggiorna(Partita partita) {
         this.contenitore.setVisible(partita.haProssimoPiano());
-        if (partita.isPianoSuperato()) {
+        if (partita.isPassaggioLibero()) {
             mostraScala();
         } else {
             mostraPorta();
