@@ -19,11 +19,12 @@ public class BarraStatoCorridoio {
     public static final String STILE = "-fx-background-color: rgba(10, 6, 8, 0.75);";
 
     private static final String STILE_BARRA_HP = "-fx-accent: " + Tema.VERDE + ";";
+    private static final String STILE_BARRA_XP = "-fx-accent: " + Tema.ORO + ";";
     private static final String TESTO_GUIDA = "Usa [A / D] oppure le frecce sinistra e destra per camminare";
     private static final int DIMENSIONE_TITOLO = 20;
     private static final int DIMENSIONE_NOME = 14;
     private static final int DIMENSIONE_TESTO = 13;
-    private static final double LARGHEZZA_BARRA_HP = 200;
+    private static final double LARGHEZZA_BARRA = 200;
     private static final double LARGHEZZA_MASSIMA_MESSAGGIO = 780;
     private static final double SPAZIO_STATO = 12;
     private static final double SPAZIO_RIGHE = 6;
@@ -33,14 +34,20 @@ public class BarraStatoCorridoio {
     private final Label etichettaEroe = creaEtichetta(DIMENSIONE_NOME, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
     private final Label etichettaHp = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final ProgressBar barraXp = new ProgressBar(0);
+    private final Label etichettaXp = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final Label etichettaAttacco = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final Label etichettaDifesa = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
     private final Label etichettaMessaggio = creaEtichetta(DIMENSIONE_TESTO, Tema.ORO);
     private final VBox contenitore;
 
     public BarraStatoCorridoio() {
         Label guida = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO_SECONDARIO);
         guida.setText(TESTO_GUIDA);
-        this.barraHp.setPrefWidth(LARGHEZZA_BARRA_HP);
+        this.barraHp.setPrefWidth(LARGHEZZA_BARRA);
         this.barraHp.setStyle(STILE_BARRA_HP);
+        this.barraXp.setPrefWidth(LARGHEZZA_BARRA);
+        this.barraXp.setStyle(STILE_BARRA_XP);
 
         this.etichettaMessaggio.setWrapText(true);
         this.etichettaMessaggio.setMaxWidth(LARGHEZZA_MASSIMA_MESSAGGIO);
@@ -48,10 +55,14 @@ public class BarraStatoCorridoio {
         this.etichettaMessaggio.setVisible(false);
         this.etichettaMessaggio.setManaged(false);
 
-        HBox stato = new HBox(SPAZIO_STATO, this.etichettaEroe, this.barraHp, this.etichettaHp);
-        stato.setAlignment(Pos.CENTER);
+        HBox rigaHp = new HBox(SPAZIO_STATO, this.etichettaEroe, this.barraHp, this.etichettaHp);
+        rigaHp.setAlignment(Pos.CENTER);
 
-        this.contenitore = new VBox(SPAZIO_RIGHE, this.etichettaPiano, stato, guida, this.etichettaMessaggio);
+        HBox rigaXp = new HBox(SPAZIO_STATO, this.barraXp, this.etichettaXp,
+                this.etichettaAttacco, this.etichettaDifesa);
+        rigaXp.setAlignment(Pos.CENTER);
+
+        this.contenitore = new VBox(SPAZIO_RIGHE, this.etichettaPiano, rigaHp, rigaXp, guida, this.etichettaMessaggio);
         this.contenitore.setAlignment(Pos.CENTER);
         this.contenitore.setPadding(new Insets(MARGINE));
         this.contenitore.setStyle(STILE);
@@ -67,12 +78,24 @@ public class BarraStatoCorridoio {
         this.etichettaEroe.setText(giocatore.getNome() + "  Liv " + giocatore.getLivello());
         this.barraHp.setProgress(Math.max(0, (double) giocatore.getHp() / giocatore.getHpMax()));
         this.etichettaHp.setText("HP " + giocatore.getHp() + "/" + giocatore.getHpMax());
+        this.barraXp.setProgress(progressoEsperienza(giocatore));
+        this.etichettaXp.setText("XP " + giocatore.getEsperienza() + "/" + giocatore.getEsperienzaProssimoLivello());
+        this.etichettaAttacco.setText("ATT " + giocatore.getAttacco());
+        this.etichettaDifesa.setText("DIF " + giocatore.getDifesa());
     }
 
     public void mostraMessaggio(String messaggio) {
         this.etichettaMessaggio.setText(messaggio);
         this.etichettaMessaggio.setVisible(true);
         this.etichettaMessaggio.setManaged(true);
+    }
+
+    private static double progressoEsperienza(Giocatore giocatore) {
+        int prossimo = giocatore.getEsperienzaProssimoLivello();
+        if (prossimo <= 0) {
+            return 1;
+        }
+        return Math.min(1, (double) giocatore.getEsperienza() / prossimo);
     }
 
     private static Label creaEtichetta(int dimensione, String colore) {
