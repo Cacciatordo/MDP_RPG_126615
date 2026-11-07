@@ -1,8 +1,10 @@
 package it.unicam.cs.mpgc.rpg126615;
 
 import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
+import it.unicam.cs.mpgc.rpg126615.ui.view.battaglia.VistaBattaglia;
 import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.VistaCorridoio;
 import javafx.application.Application;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
 import java.util.Random;
@@ -30,8 +32,20 @@ public class App extends Application {
 
     private void mostraCorridoio() {
         VistaCorridoio vista = new VistaCorridoio(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA, this.partita,
-                this::entraNelPiano, this::vaiAlProssimoPiano);
+                this::entraNelPiano, this::mostraBattaglia, this::vaiAlProssimoPiano);
         this.finestra.setScene(vista.getScena());
+    }
+
+    private void mostraBattaglia() {
+        VistaBattaglia vista = new VistaBattaglia(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA, this.partita);
+        vista.getScena().setOnKeyPressed(evento -> tornaAlCorridoioConEsc(evento.getCode()));
+        this.finestra.setScene(vista.getScena());
+    }
+
+    private void tornaAlCorridoioConEsc(KeyCode tasto) {
+        if (tasto == KeyCode.ESCAPE) {
+            mostraCorridoio();
+        }
     }
 
     private void entraNelPiano() {

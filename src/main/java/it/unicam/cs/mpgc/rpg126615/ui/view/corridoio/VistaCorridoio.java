@@ -34,6 +34,7 @@ public class VistaCorridoio {
 
     private final Partita partita;
     private final Runnable suEntra;
+    private final Runnable suCombatti;
     private final UscitaCorridoio uscita;
     private final EntitaCorridoio entitaCentrale;
     private final EroeNelCorridoio eroe;
@@ -50,9 +51,10 @@ public class VistaCorridoio {
     private boolean battagliaAvviata;
 
     public VistaCorridoio(double larghezza, double altezza, Partita partita, Runnable suEntra,
-                          Runnable suProssimoPiano) {
+                          Runnable suCombatti, Runnable suProssimoPiano) {
         this.partita = partita;
         this.suEntra = suEntra;
+        this.suCombatti = suCombatti;
         this.uscita = new UscitaCorridoio(larghezza, Y_PIEDI_EROE);
         this.entitaCentrale = new EntitaCorridoio(larghezza, Y_PIEDI_EROE);
         this.eroe = new EroeNelCorridoio(larghezza, Y_PIEDI_EROE, () -> aggiornaBottoni());
@@ -128,7 +130,7 @@ public class VistaCorridoio {
     private void combatti() {
         this.battagliaAvviata = true;
         aggiornaBottoni();
-        this.suEntra.run();
+        this.suCombatti.run();
     }
 
     private void usa(InterazioneConPiano interazione) {
