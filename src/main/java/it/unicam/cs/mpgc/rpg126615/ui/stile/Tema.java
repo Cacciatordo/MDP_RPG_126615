@@ -20,6 +20,7 @@ public final class Tema {
 
     public static final String ORO = "#fbbf24";
     public static final String VERDE = "#22c55e";
+    public static final String ROSSO = "#cc2200";
 
     private Tema() {
     }
