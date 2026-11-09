@@ -17,7 +17,7 @@ public class VistaBattaglia {
         Combattente nemico = partita.getPianoCorrente().getNemico();
         SpritePersonaggio aspettoNemico = AspettoAvversario.di(nemico)
                 .personaggioDelPiano(partita.getNumeroPianoCorrente());
-        this.palco = new PalcoBattaglia(larghezza, aspettoNemico);
+        this.palco = new PalcoBattaglia(larghezza, partita.getGiocatore(), nemico, aspettoNemico);
 
         StackPane radice = new StackPane(ScenarioBattaglia.crea(larghezza, altezza), this.palco.getLivello());
         this.scena = new Scene(radice, larghezza, altezza);
