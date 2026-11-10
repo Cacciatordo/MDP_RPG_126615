@@ -16,6 +16,7 @@ public class Battaglia {
     private final Giocatore giocatore;
     private final Nemico nemico;
     private final ContestoCarta contestoCarte;
+    private boolean attaccoEseguitoNelTurno;
 
     public Battaglia(Giocatore giocatore, Nemico nemico) {
         this.giocatore = giocatore;
@@ -43,6 +44,10 @@ public class Battaglia {
         return !nemico.isVivo();
     }
 
+    public boolean isAttaccoEseguitoNelTurno() {
+        return attaccoEseguitoNelTurno;
+    }
+
     public String giocaCartaDallaMano(int indiceCarta) {
         controllaBattagliaInCorso();
         List<Carta> carte = giocatore.getMano().getCarte();
@@ -65,10 +70,14 @@ public class Battaglia {
 
     public String attaccaConEroe() {
         controllaBattagliaInCorso();
+        if (attaccoEseguitoNelTurno) {
+            return "Hai già attaccato in questo turno.\n";
+        }
         if (giocatore.getPuntiAzione() < COSTO_PA_ATTACCO_BASE) {
             return "Punti azione insufficienti per attaccare.\n";
         }
         giocatore.consumaPA(COSTO_PA_ATTACCO_BASE);
+        attaccoEseguitoNelTurno = true;
         StringBuilder racconto = new StringBuilder();
         int danno = giocatore.attacca(nemico);
         racconto.append("Colpisci ").append(nemico.getNome())
@@ -92,6 +101,7 @@ public class Battaglia {
             return racconto.toString();
         }
         giocatore.resetPA();
+        attaccoEseguitoNelTurno = false;
         int cartePescate = giocatore.pescaCarte(CARTE_PESCATE_INIZIO_TURNO);
         racconto.append("Inizia un nuovo turno.");
         if (cartePescate > 0) {
