@@ -4,12 +4,16 @@ import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class FilaCarte {
 
@@ -18,12 +22,14 @@ public class FilaCarte {
     private static final int DIMENSIONE_TESTO = 12;
 
     private final Giocatore giocatore;
+    private final Consumer<Integer> suCartaScelta;
     private final Label etichettaPa = new Label();
     private final HBox carte = new HBox(SPAZIO_CARTE);
     private final VBox contenitore;
 
-    public FilaCarte(double larghezza, Giocatore giocatore) {
+    public FilaCarte(double larghezza, Giocatore giocatore, Consumer<Integer> suCartaScelta) {
         this.giocatore = giocatore;
+        this.suCartaScelta = suCartaScelta;
         this.etichettaPa.setFont(Font.font(Tema.FONT, DIMENSIONE_TESTO));
         this.etichettaPa.setTextFill(Color.web(Tema.ORO));
         this.carte.setAlignment(Pos.CENTER);
@@ -41,8 +47,13 @@ public class FilaCarte {
     public void aggiorna() {
         this.etichettaPa.setText("PA " + this.giocatore.getPuntiAzione());
         this.carte.getChildren().clear();
-        for (Carta carta : this.giocatore.getMano().getCarte()) {
-            this.carte.getChildren().add(new VistaCarta(carta).getNodo());
+        List<Carta> mano = this.giocatore.getMano().getCarte();
+        for (int indice = 0; indice < mano.size(); indice++) {
+            Node nodo = new VistaCarta(mano.get(indice)).getNodo();
+            int indiceCarta = indice;
+            nodo.setCursor(Cursor.HAND);
+            nodo.setOnMouseClicked(evento -> this.suCartaScelta.accept(indiceCarta));
+            this.carte.getChildren().add(nodo);
         }
     }
 }
