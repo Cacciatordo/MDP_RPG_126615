@@ -8,7 +8,7 @@ import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
 
 public class Giocatore extends EntitaAstratta implements Livellabile {
 
-    private static final int PA_PER_TURNO = 3;
+    public static final int PA_PER_TURNO = 3;
 
     private final Mano mano = new Mano();
     private final Mazzo mazzo;

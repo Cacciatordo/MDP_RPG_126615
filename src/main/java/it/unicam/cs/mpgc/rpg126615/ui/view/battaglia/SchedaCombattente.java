@@ -1,8 +1,8 @@
 package it.unicam.cs.mpgc.rpg126615.ui.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
+import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -14,37 +14,33 @@ import javafx.scene.text.TextAlignment;
 
 public class SchedaCombattente {
 
-    public static final double LARGHEZZA = 180;
+    public static final double LARGHEZZA = 260;
 
-    private static final double MARGINE = 8;
+    private static final double LARGHEZZA_BARRA = 230;
     private static final double SPAZIO = 4;
-    private static final double LARGHEZZA_BARRA = LARGHEZZA - 2 * MARGINE;
-    private static final int DIMENSIONE_NOME = 12;
-    private static final int DIMENSIONE_TESTO = 11;
-    private static final String STILE = "-fx-background-color: " + Tema.PANNELLO + "; "
-            + "-fx-border-color: " + Tema.BORDO + "; -fx-border-width: 2;";
+    private static final int DIMENSIONE_NOME = 10;
+    private static final int DIMENSIONE_HP = 9;
+    private static final int DIMENSIONE_STATISTICHE = 8;
 
     private final Combattente combattente;
-    private final Label etichettaNome = creaEtichetta(DIMENSIONE_NOME, Tema.ORO);
+    private final Label etichettaNome = creaEtichetta(DIMENSIONE_NOME, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
-    private final Label etichettaHp = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
-    private final Label etichettaStatistiche = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO_SECONDARIO);
+    private final Label etichettaHp = creaEtichetta(DIMENSIONE_HP, Tema.TESTO);
+    private final Label etichettaStatistiche = creaEtichetta(DIMENSIONE_STATISTICHE, Tema.ORO);
     private final VBox contenitore;
 
     public SchedaCombattente(Combattente combattente, String coloreBarra) {
         this.combattente = combattente;
-        this.etichettaNome.setWrapText(true);
-        this.etichettaNome.setTextAlignment(TextAlignment.CENTER);
         this.barraHp.setPrefWidth(LARGHEZZA_BARRA);
-        this.barraHp.setStyle("-fx-accent: " + coloreBarra + ";");
+        this.barraHp.setStyle("-fx-accent: " + coloreBarra + "; -fx-control-inner-background: " + Tema.SFONDO + "; "
+                + "-fx-background-radius: 0; -fx-border-color: " + Tema.BORDO + "; -fx-border-width: 2;");
 
         this.contenitore = new VBox(SPAZIO, this.etichettaNome, this.barraHp,
                 this.etichettaHp, this.etichettaStatistiche);
         this.contenitore.setAlignment(Pos.CENTER);
-        this.contenitore.setPadding(new Insets(MARGINE));
+        this.contenitore.setMinWidth(LARGHEZZA);
         this.contenitore.setPrefWidth(LARGHEZZA);
         this.contenitore.setMaxWidth(LARGHEZZA);
-        this.contenitore.setStyle(STILE);
         aggiorna();
     }
 
@@ -53,17 +49,34 @@ public class SchedaCombattente {
     }
 
     public void aggiorna() {
-        this.etichettaNome.setText(this.combattente.getNome());
+        this.etichettaNome.setText(creaNome());
         this.barraHp.setProgress((double) this.combattente.getHp() / this.combattente.getHpMax());
-        this.etichettaHp.setText("HP " + this.combattente.getHp() + "/" + this.combattente.getHpMax());
-        this.etichettaStatistiche.setText("ATT " + this.combattente.getAttacco()
-                + "  DIF " + this.combattente.getDifesa());
+        this.etichettaHp.setText("HP: " + this.combattente.getHp() + " / " + this.combattente.getHpMax());
+        this.etichettaStatistiche.setText(creaStatistiche());
+    }
+
+    private String creaNome() {
+        if (this.combattente instanceof Livellabile livellabile) {
+            return this.combattente.getNome() + " (Liv. " + livellabile.getLivello() + ")";
+        }
+        return this.combattente.getNome();
+    }
+
+    private String creaStatistiche() {
+        if (this.combattente instanceof Livellabile) {
+            return "⚔ Attacco: " + this.combattente.getAttacco() + "  |  🛡 Scudo: " + this.combattente.getDifesa();
+        }
+        return "⚔ Potenza: " + this.combattente.getAttacco() + "  |  🛡 Armatura: " + this.combattente.getDifesa();
     }
 
     private static Label creaEtichetta(int dimensione, String colore) {
         Label etichetta = new Label();
         etichetta.setFont(Font.font(Tema.FONT, dimensione));
         etichetta.setTextFill(Color.web(colore));
+        etichetta.setWrapText(true);
+        etichetta.setTextAlignment(TextAlignment.CENTER);
+        etichetta.setAlignment(Pos.CENTER);
+        etichetta.setMaxWidth(LARGHEZZA);
         return etichetta;
     }
 }

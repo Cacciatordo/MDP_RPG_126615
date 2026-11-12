@@ -6,12 +6,14 @@ import javafx.scene.control.TextArea;
 
 public class RegistroBattaglia {
 
-    private static final double ALTEZZA = 48;
+    public static final double ALTEZZA = 112;
+
     private static final int DIMENSIONE_TESTO = 9;
     private static final String STILE = "-fx-control-inner-background: " + Tema.SFONDO + "; "
-            + "-fx-text-fill: " + Tema.TESTO + "; "
+            + "-fx-text-fill: " + Tema.ORO + "; "
             + "-fx-font-family: '" + Tema.FONT + "'; -fx-font-size: " + DIMENSIONE_TESTO + "px; "
-            + "-fx-border-color: " + Tema.BORDO + "; -fx-border-width: 2;";
+            + "-fx-border-color: " + Tema.BORDO + "; -fx-border-width: 3; "
+            + "-fx-background-radius: 0; -fx-border-radius: 0; -fx-highlight-fill: #7a1220;";
 
     private final TextArea area = new TextArea();
 
@@ -20,6 +22,7 @@ public class RegistroBattaglia {
         this.area.setWrapText(true);
         this.area.setFocusTraversable(false);
         this.area.setPrefSize(larghezza, ALTEZZA);
+        this.area.setMinSize(larghezza, ALTEZZA);
         this.area.setMaxSize(larghezza, ALTEZZA);
         this.area.setStyle(STILE);
     }
