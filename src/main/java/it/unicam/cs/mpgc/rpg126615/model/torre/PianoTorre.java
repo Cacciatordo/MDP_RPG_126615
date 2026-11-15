@@ -15,5 +15,7 @@ public interface PianoTorre {
 
     boolean isCompletato();
 
+    void ripristinaCompletato();
+
     String entra(Giocatore giocatore);
 }

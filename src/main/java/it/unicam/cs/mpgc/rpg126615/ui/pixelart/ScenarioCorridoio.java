@@ -1,6 +1,5 @@
-package it.unicam.cs.mpgc.rpg126615.ui.view.corridoio;
+package it.unicam.cs.mpgc.rpg126615.ui.pixelart;
 
-import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;

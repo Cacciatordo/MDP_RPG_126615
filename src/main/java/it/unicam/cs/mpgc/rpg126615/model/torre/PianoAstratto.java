@@ -46,6 +46,11 @@ public abstract class PianoAstratto implements PianoTorre {
     }
 
     @Override
+    public void ripristinaCompletato() {
+        completato = true;
+    }
+
+    @Override
     public final String entra(Giocatore giocatore) {
         if (completato) {
             return "";

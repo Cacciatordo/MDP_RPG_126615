@@ -3,10 +3,12 @@ package it.unicam.cs.mpgc.rpg126615.ui.view.corridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import javafx.animation.AnimationTimer;
+import javafx.animation.Transition;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -17,9 +19,26 @@ public class EroeNelCorridoio {
     private static final String SPRITE_FERMO = "knight_m_idle_anim";
     private static final String SPRITE_CORSA = "knight_m_run_anim";
     private static final double MARGINE_CAMMINO = 20;
-    private static final double POSIZIONE_INIZIALE = 0.2;
     private static final double VELOCITA = 220;
     private static final double NANOSECONDI_PER_SECONDO = 1_000_000_000.0;
+    private static final Duration DURATA_SCALA = Duration.millis(700);
+    private static final double SALITA_DX = 56;
+    private static final double SALITA_DY = -28;
+    private static final double DISCESA_DX = -40;
+    private static final double DISCESA_DY = 32;
+    private static final double VERSO_DESTRA = 1;
+    private static final double VERSO_SINISTRA = -1;
+    private static final double FRAZIONE_VISIBILE_SALITA = 0.4;
+    private static final double FRAZIONE_VISIBILE_DISCESA = 0.75;
+    private static final double FRAZIONE_VISIBILE_ARRIVO = 0.6;
+    private static final CorsaEroe CORSA_SALITA =
+            new CorsaEroe(0, 0, SALITA_DX, SALITA_DY, FRAZIONE_VISIBILE_SALITA, VERSO_DESTRA);
+    private static final CorsaEroe CORSA_DISCESA =
+            new CorsaEroe(0, 0, DISCESA_DX, DISCESA_DY, FRAZIONE_VISIBILE_DISCESA, VERSO_SINISTRA);
+    private static final CorsaEroe CORSA_ARRIVO_DA_SOTTO =
+            new CorsaEroe(DISCESA_DX, DISCESA_DY, 0, 0, FRAZIONE_VISIBILE_ARRIVO, VERSO_DESTRA);
+    private static final CorsaEroe CORSA_ARRIVO_DA_SOPRA =
+            new CorsaEroe(SALITA_DX, SALITA_DY, 0, 0, FRAZIONE_VISIBILE_ARRIVO, VERSO_SINISTRA);
 
     private final double larghezzaScena;
     private final Runnable dopoOgniSpostamento;
@@ -30,11 +49,13 @@ public class EroeNelCorridoio {
     private final CicloMovimento ciclo = new CicloMovimento();
 
     private double posizione;
+    private boolean inAnimazione;
 
-    public EroeNelCorridoio(double larghezzaScena, double yPiedi, Runnable dopoOgniSpostamento) {
+    public EroeNelCorridoio(double larghezzaScena, double yPiedi, double posizioneIniziale,
+                            Runnable dopoOgniSpostamento) {
         this.larghezzaScena = larghezzaScena;
         this.dopoOgniSpostamento = dopoOgniSpostamento;
-        this.posizione = larghezzaScena * POSIZIONE_INIZIALE;
+        this.posizione = posizioneIniziale;
         this.spriteCorsa.setVisible(false);
         this.postazione.setAlignment(Pos.BOTTOM_CENTER);
         this.postazione.setLayoutY(yPiedi - this.spriteFermo.getImage().getHeight());
@@ -45,12 +66,22 @@ public class EroeNelCorridoio {
         return this.postazione;
     }
 
+    public double getPosizione() {
+        return this.posizione;
+    }
+
     public double getCentroX() {
         return this.posizione + this.spriteFermo.getImage().getWidth() / 2;
     }
 
     public void tastoPremuto(KeyCode tasto) {
-        this.tastiPremuti.add(tasto);
+        if (!this.inAnimazione) {
+            this.tastiPremuti.add(tasto);
+        }
+    }
+
+    public void fermaMovimento() {
+        this.tastiPremuti.clear();
     }
 
     public void tastoRilasciato(KeyCode tasto) {
@@ -70,6 +101,59 @@ public class EroeNelCorridoio {
         this.tastiPremuti.clear();
     }
 
+    public void nascondi() {
+        this.postazione.setOpacity(0);
+    }
+
+    public void animaSalita(Runnable alTermine) {
+        muovi(CORSA_SALITA, alTermine);
+    }
+
+    public void animaDiscesa(Runnable alTermine) {
+        muovi(CORSA_DISCESA, alTermine);
+    }
+
+    public void animaArrivoDaSotto(Runnable alTermine) {
+        muovi(CORSA_ARRIVO_DA_SOTTO, alTermine);
+    }
+
+    public void animaArrivoDaSopra(Runnable alTermine) {
+        muovi(CORSA_ARRIVO_DA_SOPRA, alTermine);
+    }
+
+    private void muovi(CorsaEroe corsa, Runnable alTermine) {
+        this.inAnimazione = true;
+        this.tastiPremuti.clear();
+        this.postazione.setScaleX(corsa.orientamento());
+        this.spriteFermo.setVisible(false);
+        this.spriteCorsa.setVisible(true);
+        posiziona(corsa, 0);
+
+        Transition transizione = new Transition() {
+            {
+                setCycleDuration(DURATA_SCALA);
+            }
+
+            @Override
+            protected void interpolate(double frazione) {
+                posiziona(corsa, frazione);
+            }
+        };
+        transizione.setOnFinished(evento -> {
+            this.inAnimazione = false;
+            this.spriteFermo.setVisible(true);
+            this.spriteCorsa.setVisible(false);
+            alTermine.run();
+        });
+        transizione.play();
+    }
+
+    private void posiziona(CorsaEroe corsa, double frazione) {
+        this.postazione.setTranslateX(Math.round(corsa.spostamentoX(frazione)));
+        this.postazione.setTranslateY(Math.round(corsa.spostamentoY(frazione)));
+        this.postazione.setOpacity(corsa.opacita(frazione));
+    }
+
     private int direzioneDeiTasti() {
         boolean sinistra = this.tastiPremuti.contains(KeyCode.A) || this.tastiPremuti.contains(KeyCode.LEFT);
         boolean destra = this.tastiPremuti.contains(KeyCode.D) || this.tastiPremuti.contains(KeyCode.RIGHT);
@@ -77,6 +161,9 @@ public class EroeNelCorridoio {
     }
 
     private void muovi(double secondi) {
+        if (this.inAnimazione) {
+            return;
+        }
         int direzione = direzioneDeiTasti();
         this.spriteFermo.setVisible(direzione == 0);
         this.spriteCorsa.setVisible(direzione != 0);

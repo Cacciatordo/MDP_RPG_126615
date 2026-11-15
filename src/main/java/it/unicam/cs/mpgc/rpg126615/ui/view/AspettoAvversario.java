@@ -6,8 +6,8 @@ import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpritePersonaggio;
 public enum AspettoAvversario {
 
     MOSTRO("👾", 14, 22, "NEMICO: %s\nCreatura guardiana della stanza."),
-    BOSS("☠ BOSS", 10, 28, "BOSS: %s\nAvversario supremo del piano! Sconfiggilo per salire le scale."),
-    BOSS_FINALE("👑 FINALE", 10, 38, "BOSS FINALE: %s\nSconfiggilo per conquistare la torre!");
+    BOSS("☠ BOSS", 14, 32, "BOSS: %s\nAvversario supremo del piano! Sconfiggilo per salire le scale."),
+    BOSS_FINALE("👑 FINALE", 14, 42, "BOSS FINALE: %s\nSconfiggilo per conquistare la torre!");
 
     private final String icona;
     private final int dimensioneIcona;

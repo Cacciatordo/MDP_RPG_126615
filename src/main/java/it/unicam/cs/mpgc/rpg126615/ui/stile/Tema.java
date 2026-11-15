@@ -10,7 +10,7 @@ public final class Tema {
     private static final double DIMENSIONE_CARICAMENTO_FONT = 12;
 
     public static final String FONT = caricaFont();
-
+    public static final String ERRORE = "#ff6b6b";
     public static final String SFONDO = "#0a0608";
     public static final String PANNELLO = "#1c1410";
     public static final String BORDO = "#6b6058";

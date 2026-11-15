@@ -8,7 +8,7 @@ import java.util.List;
 
 public class InterazioneConPiano {
 
-    private static final double DISTANZA_MASSIMA = 110;
+    private static final double DISTANZA_MASSIMA = 45;
 
     private final Partita partita;
     private final double centroEntita;

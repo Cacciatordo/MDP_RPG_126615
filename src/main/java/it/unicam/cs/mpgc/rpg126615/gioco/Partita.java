@@ -104,6 +104,15 @@ public class Partita {
         return true;
     }
 
+    public boolean tornaAlPianoPrecedente() {
+        if (numeroPianoCorrente <= 1) {
+            return false;
+        }
+        numeroPianoCorrente--;
+        preparaPianoCorrente();
+        return true;
+    }
+
     public void ritiratiDopoSconfitta() {
         if (giocatore.isVivo()) {
             throw new IllegalStateException("Il giocatore è ancora vivo");
@@ -124,7 +133,7 @@ public class Partita {
         for (int numero = 1; numero <= torre.getNumeroPiani(); numero++) {
             PianoTorre piano = torre.getPiano(numero);
             String informazione = piano.haNemico() ? piano.getNemico().getNome() : "";
-            datiPiani.add(new DatiPiano(piano.getTipo(), piano.isCompletato(), informazione));
+            datiPiani.add(new DatiPiano(piano.getTipo(), isPianoSuperato(piano), informazione));
         }
         return new DatiSalvataggio(numeroPianoCorrente, giocatore.getStato(), datiPiani);
     }
@@ -134,8 +143,28 @@ public class Partita {
             throw new IllegalArgumentException("Il salvataggio non corrisponde alla torre attuale");
         }
         giocatore.applicaStato(dati.giocatore());
+        for (int indice = 0; indice < dati.piani().size(); indice++) {
+            ripristinaPiano(torre.getPiano(indice + 1), dati.piani().get(indice).completato());
+        }
         numeroPianoCorrente = dati.pianoCorrente();
         preparaPianoCorrente();
+    }
+
+    private static boolean isPianoSuperato(PianoTorre piano) {
+        return piano.isCompletato() || (piano.haNemico() && !piano.getNemico().isVivo());
+    }
+
+    private static void ripristinaPiano(PianoTorre piano, boolean superato) {
+        if (piano.haNemico()) {
+            Nemico nemico = piano.getNemico();
+            if (superato) {
+                nemico.subisciDanno(nemico.getHp());
+            } else {
+                nemico.cura(nemico.getHpMax());
+            }
+        } else if (superato) {
+            piano.ripristinaCompletato();
+        }
     }
 
     private int trovaPianoDiRipartenza() {
