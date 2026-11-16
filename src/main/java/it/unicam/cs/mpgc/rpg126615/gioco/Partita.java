@@ -29,6 +29,7 @@ public class Partita {
     private final Torre torre;
     private int numeroPianoCorrente;
     private Battaglia battaglia;
+    private boolean riaffrontoInCorso;
 
     public Partita(Giocatore giocatore, Torre torre) {
         if (giocatore == null || torre == null) {
@@ -113,6 +114,17 @@ public class Partita {
         return true;
     }
 
+    public void riaffrontaAvversario() {
+        PianoTorre piano = getPianoCorrente();
+        if (!piano.haNemico()) {
+            throw new IllegalStateException("Il piano corrente non ha avversari");
+        }
+        Nemico nemico = piano.getNemico();
+        nemico.cura(nemico.getHpMax());
+        preparaPianoCorrente();
+        riaffrontoInCorso = true;
+    }
+
     public void ritiratiDopoSconfitta() {
         if (giocatore.isVivo()) {
             throw new IllegalStateException("Il giocatore è ancora vivo");
@@ -120,7 +132,12 @@ public class Partita {
         PianoTorre pianoDellaSconfitta = getPianoCorrente();
         if (pianoDellaSconfitta.haNemico()) {
             Nemico nemico = pianoDellaSconfitta.getNemico();
-            nemico.cura(nemico.getHpMax());
+            if (riaffrontoInCorso) {
+                // Il piano era già stato superato: perdere una sfida facoltativa non lo riapre.
+                nemico.subisciDanno(nemico.getHp());
+            } else {
+                nemico.cura(nemico.getHpMax());
+            }
         }
         giocatore.perdiEsperienza(PENALITA_XP_SCONFITTA);
         giocatore.cura(giocatore.getHpMax());
@@ -189,6 +206,7 @@ public class Partita {
     }
 
     private void preparaPianoCorrente() {
+        riaffrontoInCorso = false;
         PianoTorre piano = getPianoCorrente();
         battaglia = piano.haNemico() ? new Battaglia(giocatore, piano.getNemico()) : null;
     }

@@ -2,14 +2,16 @@ package it.unicam.cs.mpgc.rpg126615.ui.view.corridoio;
 
 import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
-import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.stage.Window;
 
 import java.util.List;
@@ -23,6 +25,12 @@ public class VistaCorridoio {
     private static final double DISTANZA_INGRESSO_DA_SOPRA = 140;
     private static final double MARGINE_USCITA_DESTRA = 120;
     private static final double LIMITE_SCALA_DISCESA = 44;
+    private static final double DISTANZA_SFIDA = 90;
+    private static final double LARGHEZZA_PULSANTE_SFIDA = 190;
+    private static final double SCARTO_PULSANTE_SFIDA = 12;
+    private static final int DIMENSIONE_PULSANTE_SFIDA = 9;
+    private static final String TESTO_SFIDA_MOSTRO = "⚔ SFIDA MOSTRO";
+    private static final String TESTO_SFIDA_BOSS = "⚔ SFIDA BOSS";
     private static final String TITOLO_CASSA = "Antica cassa";
     private static final String TESTO_CASSA = "Vuoi aprirla? Potresti trovare un premio... o una trappola!";
     private static final String TITOLO_FONTANA = "Fontana di lava";
@@ -45,6 +53,7 @@ public class VistaCorridoio {
     private final InterazioneConPiano interazioneNemico;
     private final PannelloConferma pannelloConferma = new PannelloConferma();
     private final BarraSuperioreCorridoio barraSuperiore;
+    private final Button pulsanteSfida = new Button();
     private final Scene scena;
 
     private final ArrivoNelCorridoio arrivo;
@@ -72,6 +81,7 @@ public class VistaCorridoio {
         if (arrivo == ArrivoNelCorridoio.DA_SOTTO || arrivo == ArrivoNelCorridoio.DA_SOPRA) {
             this.eroe.nascondi();
         }
+        preparaPulsanteSfida(centro);
         this.uscita.aggiorna(partita);
         this.scalaDiscesa.aggiorna(partita);
         this.entitaCentrale.mostra(partita.getPianoCorrente());
@@ -113,6 +123,7 @@ public class VistaCorridoio {
         zona.getChildren().add(this.uscita.getLivello());
         zona.getChildren().add(this.scalaDiscesa.getLivello());
         zona.getChildren().add(this.entitaCentrale.getLivello());
+        zona.getChildren().add(this.pulsanteSfida);
         zona.getChildren().add(this.eroe.getNodo());
 
         Pane scenario = new Pane(zona);
@@ -135,6 +146,7 @@ public class VistaCorridoio {
             return;
         }
         double centroEroe = this.eroe.getCentroX();
+        aggiornaPulsanteSfida(centroEroe);
         boolean vicinoACassa = this.interazioneCassa.isDisponibile(centroEroe);
         boolean vicinoAFontana = this.interazioneFontana.isDisponibile(centroEroe);
         if (!vicinoACassa && !vicinoAFontana) {
@@ -161,6 +173,40 @@ public class VistaCorridoio {
         }
     }
 
+    private void preparaPulsanteSfida(double centroAvversario) {
+        boolean boss = this.partita.getPianoCorrente().getTipo() != TipoPiano.COMBATTIMENTO;
+        this.pulsanteSfida.setText(boss ? TESTO_SFIDA_BOSS : TESTO_SFIDA_MOSTRO);
+        this.pulsanteSfida.setFont(Font.font(Tema.FONT, DIMENSIONE_PULSANTE_SFIDA));
+        this.pulsanteSfida.setStyle("-fx-background-color: " + Tema.PANNELLO + "; -fx-text-fill: " + Tema.ORO + "; "
+                + "-fx-border-color: " + Tema.ORO + "; -fx-border-width: 2; "
+                + "-fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 5 10;");
+        this.pulsanteSfida.setCursor(Cursor.HAND);
+        this.pulsanteSfida.setFocusTraversable(false);
+        this.pulsanteSfida.setMinWidth(LARGHEZZA_PULSANTE_SFIDA);
+        this.pulsanteSfida.setMaxWidth(LARGHEZZA_PULSANTE_SFIDA);
+        this.pulsanteSfida.setLayoutX(Math.round(centroAvversario - LARGHEZZA_PULSANTE_SFIDA / 2));
+        this.pulsanteSfida.setLayoutY(Y_PIEDI_EROE + SCARTO_PAVIMENTO_ENTITA + SCARTO_PULSANTE_SFIDA);
+        this.pulsanteSfida.setOnAction(evento -> riaffronta());
+        this.pulsanteSfida.setVisible(false);
+        aggiornaPulsanteSfida(this.eroe.getCentroX());
+    }
+
+    private void aggiornaPulsanteSfida(double centroEroe) {
+        boolean vicino = Math.abs(centroEroe - this.entitaCentrale.getCentroX()) <= DISTANZA_SFIDA;
+        this.pulsanteSfida.setVisible(this.partita.getPianoCorrente().haNemico()
+                && this.partita.isPianoSuperato() && vicino);
+    }
+
+    private void riaffronta() {
+        if (this.interazioneAvviata) {
+            return;
+        }
+        this.interazioneAvviata = true;
+        this.eroe.fermaMovimento();
+        this.partita.riaffrontaAvversario();
+        this.azioni.suCombatti().accept(this.eroe.getPosizione());
+    }
+
     private boolean isUscitaRaggiunta() {
         return this.partita.haProssimoPiano()
                 && this.partita.isPassaggioLibero()
@@ -184,17 +230,7 @@ public class VistaCorridoio {
     }
 
     private void carica() {
-        this.dialoghi.scegliDaCaricare().ifPresent(dati -> ripristina(dati));
-    }
-
-    private void ripristina(DatiSalvataggio dati) {
-        try {
-            this.partita.ripristina(dati);
-        } catch (IllegalArgumentException errore) {
-            this.barraSuperiore.mostraMessaggio("✖ " + errore.getMessage());
-            return;
-        }
-        this.azioni.suPartitaCaricata().run();
+        this.dialoghi.scegliDaCaricare().ifPresent(dati -> this.azioni.suPartitaCaricata().accept(dati));
     }
 
     private void animaSoloSeMostrata(Window finestra) {
