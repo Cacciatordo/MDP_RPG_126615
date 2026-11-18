@@ -7,7 +7,8 @@ public record StatoGiocatore(
         int hp,
         int hpMax,
         int bonusAttaccoPermanente,
-        int difesaPermanente
+        int difesaPermanente,
+        int pianiFeritaRimanenti
 ) {
 
     public StatoGiocatore {
@@ -21,6 +22,7 @@ public record StatoGiocatore(
         controllaNonNegativo("Gli HP", hp);
         controllaNonNegativo("Il bonus attacco permanente", bonusAttaccoPermanente);
         controllaNonNegativo("La difesa permanente", difesaPermanente);
+        controllaNonNegativo("I piani di ferita rimanenti", pianiFeritaRimanenti);
         if (hpMax <= 0) {
             throw new IllegalArgumentException("Gli HP massimi devono essere positivi: " + hpMax);
         }

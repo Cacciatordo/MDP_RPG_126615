@@ -14,6 +14,6 @@ public class PianoCassa extends PianoAstratto {
     @Override
     protected String eseguiEffetto(Giocatore giocatore) {
         segnaCompletato();
-        return contenuto.applica(giocatore);
+        return contenuto.applica(giocatore, getNumero());
     }
 }

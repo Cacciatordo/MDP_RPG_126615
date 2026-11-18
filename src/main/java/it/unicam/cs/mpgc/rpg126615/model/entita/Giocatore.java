@@ -9,6 +9,8 @@ import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
 public class Giocatore extends EntitaAstratta implements Livellabile {
 
     public static final int PA_PER_TURNO = 3;
+    public static final int ATTACCO_PER_LIVELLO = 2;
+    public static final int HP_PER_LIVELLO = 15;
 
     private final Mano mano = new Mano();
     private final Mazzo mazzo;
@@ -17,6 +19,7 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
     private int puntiAzione;
     private int bonusAttaccoPermanente;
     private int difesaPermanente;
+    private int pianiFeritaRimanenti;
 
     public Giocatore(String nome, int hpMax, int attaccoBase) {
         super(nome, hpMax, attaccoBase);
@@ -73,7 +76,11 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
 
     @Override
     public void aggiungiEsperienza(int xp) {
-        gestoreLivello.aggiungiEsperienza(xp);
+        int livelliGuadagnati = gestoreLivello.aggiungiEsperienza(xp);
+        if (livelliGuadagnati > 0) {
+            int incremento = livelliGuadagnati * HP_PER_LIVELLO;
+            ripristinaHp(getHp() + incremento, getHpMax() + incremento);
+        }
     }
 
     public void perdiEsperienza(int xp) {
@@ -88,9 +95,30 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
         difesaPermanente += bonus;
     }
 
+    public void applicaFerita(int numeroPiani) {
+        if (numeroPiani <= 0) {
+            throw new IllegalArgumentException("I piani di ferita devono essere maggiori di 0");
+        }
+        pianiFeritaRimanenti += numeroPiani;
+    }
+
+    public void avanzaPiano() {
+        if (pianiFeritaRimanenti > 0) {
+            pianiFeritaRimanenti--;
+        }
+    }
+
+    public boolean isGuarigioneBloccata() {
+        return pianiFeritaRimanenti > 0;
+    }
+
+    public int getPianiFeritaRimanenti() {
+        return pianiFeritaRimanenti;
+    }
+
     public StatoGiocatore getStato() {
         return new StatoGiocatore(getNome(), getLivello(), getEsperienza(), getHp(), getHpMax(),
-                bonusAttaccoPermanente, difesaPermanente);
+                bonusAttaccoPermanente, difesaPermanente, pianiFeritaRimanenti);
     }
 
     public void applicaStato(StatoGiocatore stato) {
@@ -98,15 +126,20 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
         ripristinaHp(stato.hp(), stato.hpMax());
         bonusAttaccoPermanente = stato.bonusAttaccoPermanente();
         difesaPermanente = stato.difesaPermanente();
+        pianiFeritaRimanenti = stato.pianiFeritaRimanenti();
+    }
+
+    public int getDifesaNaturale() {
+        return Math.max(0, getLivello() - GestoreLivello.LIVELLO_INIZIALE);
     }
 
     @Override
     public int getAttacco() {
-        return super.getAttacco() + bonusAttaccoPermanente;
+        return super.getAttacco() + getLivello() * ATTACCO_PER_LIVELLO + bonusAttaccoPermanente;
     }
 
     @Override
     public int getDifesa() {
-        return super.getDifesa() + difesaPermanente;
+        return super.getDifesa() + getDifesaNaturale() + difesaPermanente;
     }
 }

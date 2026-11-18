@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Partita {
 
@@ -23,21 +24,25 @@ public class Partita {
 
     private static final String NOME_PREDEFINITO = "Eroe";
     private static final int HP_INIZIALI_GIOCATORE = 100;
-    private static final int ATTACCO_INIZIALE_GIOCATORE = 12;
+    private static final int ATTACCO_INIZIALE_GIOCATORE = 10;
 
     private final Giocatore giocatore;
     private final Torre torre;
     private int numeroPianoCorrente;
+    private int pianoMassimoRaggiunto;
+    private final long semeTorre;
     private Battaglia battaglia;
     private boolean riaffrontoInCorso;
 
-    public Partita(Giocatore giocatore, Torre torre) {
+    public Partita(Giocatore giocatore, Torre torre, long semeTorre) {
         if (giocatore == null || torre == null) {
             throw new IllegalArgumentException("Giocatore e torre non possono essere nulli");
         }
         this.giocatore = giocatore;
         this.torre = torre;
+        this.semeTorre = semeTorre;
         this.numeroPianoCorrente = 1;
+        this.pianoMassimoRaggiunto = 1;
         preparaPianoCorrente();
     }
 
@@ -45,15 +50,19 @@ public class Partita {
         return totalePiani >= PIANI_MINIMI && totalePiani <= PIANI_MASSIMI;
     }
 
-    public static Partita nuova(String nomeEroe, int totalePiani, Random random) {
+    public static Partita nuova(String nomeEroe, int totalePiani) {
+        return nuova(nomeEroe, totalePiani, ThreadLocalRandom.current().nextLong());
+    }
+
+    public static Partita nuova(String nomeEroe, int totalePiani, long semeTorre) {
         if (!isNumeroPianiValido(totalePiani)) {
             throw new IllegalArgumentException("Il numero di piani deve essere tra " + PIANI_MINIMI
                     + " e " + PIANI_MASSIMI + ": " + totalePiani);
         }
         String nome = (nomeEroe == null || nomeEroe.isBlank()) ? NOME_PREDEFINITO : nomeEroe.trim();
         Giocatore nuovoGiocatore = new Giocatore(nome, HP_INIZIALI_GIOCATORE, ATTACCO_INIZIALE_GIOCATORE);
-        Torre nuovaTorre = new Torre(new GeneratorePiani(random).generaPiani(totalePiani));
-        return new Partita(nuovoGiocatore, nuovaTorre);
+        Torre nuovaTorre = new Torre(new GeneratorePiani(new Random(semeTorre)).generaPiani(totalePiani));
+        return new Partita(nuovoGiocatore, nuovaTorre, semeTorre);
     }
 
     public Giocatore getGiocatore() {
@@ -101,6 +110,10 @@ public class Partita {
             return false;
         }
         numeroPianoCorrente++;
+        if (numeroPianoCorrente > pianoMassimoRaggiunto) {
+            pianoMassimoRaggiunto = numeroPianoCorrente;
+            giocatore.avanzaPiano();
+        }
         preparaPianoCorrente();
         return true;
     }
@@ -152,7 +165,8 @@ public class Partita {
             String informazione = piano.haNemico() ? piano.getNemico().getNome() : "";
             datiPiani.add(new DatiPiano(piano.getTipo(), isPianoSuperato(piano), informazione));
         }
-        return new DatiSalvataggio(numeroPianoCorrente, giocatore.getStato(), datiPiani);
+        return new DatiSalvataggio(numeroPianoCorrente, pianoMassimoRaggiunto, semeTorre,
+                giocatore.getStato(), datiPiani);
     }
 
     public void ripristina(DatiSalvataggio dati) {
@@ -164,6 +178,7 @@ public class Partita {
             ripristinaPiano(torre.getPiano(indice + 1), dati.piani().get(indice).completato());
         }
         numeroPianoCorrente = dati.pianoCorrente();
+        pianoMassimoRaggiunto = dati.pianoMassimoRaggiunto();
         preparaPianoCorrente();
     }
 

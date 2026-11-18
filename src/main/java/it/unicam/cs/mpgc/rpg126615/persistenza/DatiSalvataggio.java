@@ -4,7 +4,8 @@ import it.unicam.cs.mpgc.rpg126615.model.entita.StatoGiocatore;
 
 import java.util.List;
 
-public record DatiSalvataggio(int pianoCorrente, StatoGiocatore giocatore, List<DatiPiano> piani) {
+public record DatiSalvataggio(int pianoCorrente, int pianoMassimoRaggiunto, long semeTorre,
+                              StatoGiocatore giocatore, List<DatiPiano> piani) {
 
     public DatiSalvataggio {
         if (giocatore == null) {
@@ -17,6 +18,7 @@ public record DatiSalvataggio(int pianoCorrente, StatoGiocatore giocatore, List<
             throw new IllegalArgumentException("Il piano corrente (" + pianoCorrente
                     + ") non è tra 1 e " + piani.size());
         }
+        pianoMassimoRaggiunto = Math.min(piani.size(), Math.max(pianoMassimoRaggiunto, pianoCorrente));
         piani = List.copyOf(piani);
     }
 }

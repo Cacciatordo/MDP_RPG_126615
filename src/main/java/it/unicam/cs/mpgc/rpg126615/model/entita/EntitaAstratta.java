@@ -6,12 +6,17 @@ public abstract class EntitaAstratta implements Combattente {
 
     private final String nome;
     private final int attaccoBase;
+    private final int difesaBase;
     private int hpMax;
     private int hp;
     private int modificatoreAttacco;
-    private int difesa;
+    private int modificatoreDifesa;
 
     protected EntitaAstratta(String nome, int hpMax, int attaccoBase) {
+        this(nome, hpMax, attaccoBase, 0);
+    }
+
+    protected EntitaAstratta(String nome, int hpMax, int attaccoBase, int difesaBase) {
         if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("Il nome non può essere vuoto o nullo");
         }
@@ -21,9 +26,13 @@ public abstract class EntitaAstratta implements Combattente {
         if (attaccoBase <= 0) {
             throw new IllegalArgumentException("L'attacco base deve essere positivo");
         }
+        if (difesaBase < 0) {
+            throw new IllegalArgumentException("La difesa base non può essere negativa");
+        }
         this.nome = nome;
         this.hpMax = hpMax;
         this.attaccoBase = attaccoBase;
+        this.difesaBase = difesaBase;
         this.hp = hpMax;
     }
 
@@ -54,7 +63,7 @@ public abstract class EntitaAstratta implements Combattente {
 
     @Override
     public int getDifesa() {
-        return difesa;
+        return Math.max(0, difesaBase + modificatoreDifesa);
     }
 
     @Override
@@ -64,13 +73,13 @@ public abstract class EntitaAstratta implements Combattente {
 
     @Override
     public void modificaDifesa(int variazione) {
-        difesa = Math.max(0, difesa + variazione);
+        modificatoreDifesa += variazione;
     }
 
     @Override
     public void azzeraModificatori() {
         modificatoreAttacco = 0;
-        difesa = 0;
+        modificatoreDifesa = 0;
     }
 
     @Override
