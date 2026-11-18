@@ -8,8 +8,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,7 @@ public class DialoghiSalvataggio {
 
     private static final String CARATTERI_NON_AMMESSI = "[^a-zA-Z0-9_-]";
     private static final double ALTEZZA_ELENCO = 180;
+    private static final double SPAZIATURA = 8;
 
     private final ArchivioSalvataggi archivio;
 
@@ -71,13 +74,39 @@ public class DialoghiSalvataggio {
     }
 
     private Optional<String> chiediNome(String predefinito, List<String> esistenti) {
-        TextInputDialog dialogo = new TextInputDialog(predefinito);
+        Dialog<String> dialogo = new Dialog<>();
         dialogo.setTitle("Salva Partita");
         dialogo.setHeaderText(esistenti.isEmpty()
                 ? "Scegli il nome del salvataggio."
-                : "Scegli il nome del salvataggio.\nEsistenti: " + String.join(", ", esistenti));
-        dialogo.setContentText("Nome:");
+                : "Scrivi un nome nuovo oppure seleziona un salvataggio da sovrascrivere.");
+
+        TextField campoNome = new TextField(predefinito);
+        ButtonType salva = new ButtonType("Salva", ButtonBar.ButtonData.OK_DONE);
+        dialogo.getDialogPane().getButtonTypes().addAll(salva, ButtonType.CANCEL);
+        dialogo.getDialogPane().setContent(creaContenutoSalvataggio(campoNome, esistenti));
+        dialogo.setResultConverter(pulsante -> pulsante == salva ? campoNome.getText() : null);
         return dialogo.showAndWait();
+    }
+
+    private VBox creaContenutoSalvataggio(TextField campoNome, List<String> esistenti) {
+        VBox contenuto = new VBox(SPAZIATURA, new Label("Nome:"), campoNome);
+        if (!esistenti.isEmpty()) {
+            contenuto.getChildren().addAll(new Label("Salvataggi esistenti:"),
+                    creaElencoEsistenti(campoNome, esistenti));
+        }
+        return contenuto;
+    }
+
+    private ListView<String> creaElencoEsistenti(TextField campoNome, List<String> esistenti) {
+        ListView<String> elenco = new ListView<>();
+        elenco.getItems().addAll(esistenti);
+        elenco.setPrefHeight(ALTEZZA_ELENCO);
+        elenco.getSelectionModel().selectedItemProperty().addListener((osservato, vecchio, nuovo) -> {
+            if (nuovo != null) {
+                campoNome.setText(nuovo);
+            }
+        });
+        return elenco;
     }
 
     private boolean confermaSovrascrittura(String nome) {
