@@ -32,10 +32,10 @@ public class VistaCorridoio {
     private static final int DIMENSIONE_PULSANTE_SFIDA = 9;
     private static final String TESTO_SFIDA_MOSTRO = "⚔ SFIDA MOSTRO";
     private static final String TESTO_SFIDA_BOSS = "⚔ SFIDA BOSS";
-    private static final String TITOLO_CASSA = "Antica cassa";
-    private static final String TESTO_CASSA = "Vuoi aprirla? Potresti trovare un premio... o una trappola!";
-    private static final String TITOLO_FONTANA = "Fontana di lava";
-    private static final String TESTO_FONTANA = "Vuoi riposare qui? Recupererai i tuoi HP.";
+    private static final RichiestaConferma RICHIESTA_CASSA = RichiestaConferma.standard("Antica cassa",
+            "Vuoi aprirla? Potresti trovare un premio... o una trappola!");
+    private static final RichiestaConferma RICHIESTA_FONTANA = new RichiestaConferma("Fontana di lava",
+            "Vuoi curarti ora?", "SÌ, curami ora", "NO, ci penserò dopo");
     private static final List<TipoPiano> PIANI_CON_CASSA = List.of(TipoPiano.CASSA);
     private static final List<TipoPiano> PIANI_CON_FONTANA = List.of(TipoPiano.RIPOSO);
     private static final List<TipoPiano> PIANI_CON_NEMICO = List.of(
@@ -159,17 +159,29 @@ public class VistaCorridoio {
         }
 
         if (this.interazioneNemico.isDisponibile(centroEroe) && !this.partita.isPianoSuperato()) {
-            this.interazioneAvviata = true;
-            this.azioni.suCombatti().accept(this.eroe.getPosizione());
+            avviaCombattimento();
         } else if (vicinoACassa && !this.richiestaMostrata) {
-            this.richiestaMostrata = true;
-            this.eroe.fermaMovimento();
-            this.pannelloConferma.mostra(TITOLO_CASSA, TESTO_CASSA, () -> usa(this.interazioneCassa));
+            chiediConferma(RICHIESTA_CASSA, this.interazioneCassa);
         } else if (vicinoAFontana && !this.richiestaMostrata) {
-            this.richiestaMostrata = true;
-            this.eroe.fermaMovimento();
-            this.pannelloConferma.mostra(TITOLO_FONTANA, TESTO_FONTANA, () -> usa(this.interazioneFontana));
-        } else if (isUscitaRaggiunta()) {
+            chiediConferma(RICHIESTA_FONTANA, this.interazioneFontana);
+        } else {
+            controllaPassaggioDiPiano();
+        }
+    }
+
+    private void avviaCombattimento() {
+        this.interazioneAvviata = true;
+        this.azioni.suCombatti().accept(this.eroe.getPosizione());
+    }
+
+    private void chiediConferma(RichiestaConferma richiesta, InterazioneConPiano interazione) {
+        this.richiestaMostrata = true;
+        this.eroe.fermaMovimento();
+        this.pannelloConferma.mostra(richiesta, () -> usa(interazione));
+    }
+
+    private void controllaPassaggioDiPiano() {
+        if (isUscitaRaggiunta()) {
             this.interazioneAvviata = true;
             this.eroe.animaSalita(this.azioni.suProssimoPiano());
         } else if (isScalaDiscesaRaggiunta()) {

@@ -7,7 +7,6 @@ import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Battaglia {
 
@@ -58,9 +57,11 @@ public class Battaglia {
             return aCapo(CronacaBattaglia.cartaNonValida());
         }
         Carta carta = carte.get(indiceCarta);
-        Optional<String> rifiuto = motivoDelRifiuto(carta);
-        if (rifiuto.isPresent()) {
-            return aCapo(rifiuto.get());
+        if (!carta.isGiocabile(giocatore.getMano())) {
+            return aCapo(CronacaBattaglia.manoPiena(carta));
+        }
+        if (giocatore.getPuntiAzione() < carta.getCostoPA()) {
+            return aCapo(CronacaBattaglia.cartaSenzaPuntiAzione(carta));
         }
         return aCapo(giocaCarta(carta));
     }
@@ -94,16 +95,6 @@ public class Battaglia {
         }
         iniziaNuovoRound();
         return aCapo(racconto + raccontaEffettiSvaniti(primaDelNuovoRound));
-    }
-
-    private Optional<String> motivoDelRifiuto(Carta carta) {
-        if (!carta.isGiocabile(giocatore.getMano())) {
-            return Optional.of(CronacaBattaglia.manoPiena(carta));
-        }
-        if (giocatore.getPuntiAzione() < carta.getCostoPA()) {
-            return Optional.of(CronacaBattaglia.cartaSenzaPuntiAzione(carta));
-        }
-        return Optional.empty();
     }
 
     private String giocaCarta(Carta carta) {

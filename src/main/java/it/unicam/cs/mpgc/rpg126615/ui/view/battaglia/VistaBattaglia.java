@@ -48,36 +48,17 @@ public class VistaBattaglia {
 
     public VistaBattaglia(DimensioniFinestra dimensioni, Partita partita, Runnable suUscita) {
         double larghezza = dimensioni.larghezza();
-        double altezza = dimensioni.altezza();
         this.partita = partita;
         this.suUscita = suUscita;
         this.battaglia = partita.getBattaglia().orElseThrow();
         Combattente nemico = this.battaglia.getNemico();
-        SpritePersonaggio aspettoNemico = AspettoAvversario.di(nemico)
-                .personaggioDelPiano(partita.getNumeroPianoCorrente());
-        double larghezzaInterna = larghezza - 2 * MARGINE;
-        this.palco = new PalcoBattaglia(larghezzaInterna, this.battaglia.getGiocatore(), nemico, aspettoNemico);
+        this.palco = new PalcoBattaglia(larghezza - 2 * MARGINE, this.battaglia.getGiocatore(), nemico,
+                aspettoDelNemico(nemico));
         this.filaCarte = new FilaCarte(larghezza - 2 * MARGINE_CARTE, this.battaglia,
                 indice -> giocaCarta(indice), () -> attacca());
         this.comandi = new BarraComandiBattaglia(larghezza, this.battaglia.getGiocatore(), () -> terminaTurno());
-        this.registro = new RegistroBattaglia(larghezzaInterna);
-
-        Pane interfaccia = new Pane();
-        interfaccia.setPickOnBounds(false);
-        aggiungi(interfaccia, creaTitolo(larghezza, nemico.getNome()), 0, CIMA_TITOLO);
-        aggiungi(interfaccia, this.palco.getLivello(), MARGINE, CIMA_PALCO);
-        aggiungi(interfaccia, this.registro.getNodo(), MARGINE, CIMA_REGISTRO);
-        aggiungi(interfaccia, this.comandi.getNodo(), 0, CIMA_COMANDI);
-        aggiungi(interfaccia, this.filaCarte.getNodo(), MARGINE_CARTE, CIMA_CARTE);
-
-        int lineaPavimento = (int) (CIMA_PALCO + PalcoBattaglia.LINEA_PAVIMENTO);
-        int fondoTappeto = (int) (CIMA_PALCO + PalcoBattaglia.ALTEZZA);
-        StackPane radice = new StackPane(
-                ScenarioBattaglia.crea(larghezza, altezza, lineaPavimento, fondoTappeto), interfaccia);
-        radice.setStyle("-fx-background-color: " + Tema.SFONDO + ";");
-        this.scena = new Scene(radice, larghezza, altezza);
-        this.scena.windowProperty().addListener(
-                (osservato, precedente, attuale) -> animaSoloSeMostrata(attuale));
+        this.registro = new RegistroBattaglia(larghezza - 2 * MARGINE);
+        this.scena = creaScena(dimensioni, creaInterfaccia(larghezza, nemico.getNome()));
 
         this.registro.aggiungi(TESTO_INIZIO.formatted(nemico.getNome()));
         this.comandi.abilita(!this.battaglia.isFinita());
@@ -85,6 +66,34 @@ public class VistaBattaglia {
 
     public Scene getScena() {
         return this.scena;
+    }
+
+    private SpritePersonaggio aspettoDelNemico(Combattente nemico) {
+        return AspettoAvversario.di(nemico).personaggioDelPiano(this.partita.getNumeroPianoCorrente());
+    }
+
+    private Pane creaInterfaccia(double larghezza, String nomeNemico) {
+        Pane interfaccia = new Pane();
+        interfaccia.setPickOnBounds(false);
+        aggiungi(interfaccia, creaTitolo(larghezza, nomeNemico), 0, CIMA_TITOLO);
+        aggiungi(interfaccia, this.palco.getLivello(), MARGINE, CIMA_PALCO);
+        aggiungi(interfaccia, this.registro.getNodo(), MARGINE, CIMA_REGISTRO);
+        aggiungi(interfaccia, this.comandi.getNodo(), 0, CIMA_COMANDI);
+        aggiungi(interfaccia, this.filaCarte.getNodo(), MARGINE_CARTE, CIMA_CARTE);
+        return interfaccia;
+    }
+
+    private Scene creaScena(DimensioniFinestra dimensioni, Pane interfaccia) {
+        int lineaPavimento = (int) (CIMA_PALCO + PalcoBattaglia.LINEA_PAVIMENTO);
+        int fondoTappeto = (int) (CIMA_PALCO + PalcoBattaglia.ALTEZZA);
+        StackPane radice = new StackPane(
+                ScenarioBattaglia.crea(dimensioni.larghezza(), dimensioni.altezza(), lineaPavimento, fondoTappeto),
+                interfaccia);
+        radice.setStyle("-fx-background-color: " + Tema.SFONDO + ";");
+        Scene nuovaScena = new Scene(radice, dimensioni.larghezza(), dimensioni.altezza());
+        nuovaScena.windowProperty().addListener(
+                (osservato, precedente, attuale) -> animaSoloSeMostrata(attuale));
+        return nuovaScena;
     }
 
     private Label creaTitolo(double larghezza, String nomeNemico) {

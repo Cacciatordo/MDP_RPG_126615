@@ -19,11 +19,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.CodeSource;
-import java.util.Optional;
 
 public class App extends Application {
 
@@ -33,13 +29,12 @@ public class App extends Application {
             new DimensioniFinestra(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA);
     private static final String TITOLO_FINESTRA = "Emberfall";
     private static final String CARTELLA_SALVATAGGI = "salvataggi";
-    private static final String FILE_RADICE_PROGETTO = "build.gradle";
 
     private Stage finestra;
     private Partita partita;
     private double posizioneEroe;
     private final DialoghiSalvataggio dialoghi = new DialoghiSalvataggio(
-            new ArchivioSalvataggiFile(radiceProgetto().resolve(CARTELLA_SALVATAGGI)));
+            new ArchivioSalvataggiFile(Path.of(CARTELLA_SALVATAGGI)));
 
     @Override
     public void start(Stage primaryStage) {
@@ -137,31 +132,5 @@ public class App extends Application {
     private void vaiAlPianoPrecedente() {
         this.partita.tornaAlPianoPrecedente();
         mostraCorridoio(ArrivoNelCorridoio.DA_SOPRA);
-    }
-
-    private static Path radiceProgetto() {
-        return posizioneClassi()
-                .flatMap(App::risaliFinoAllaRadice)
-                .orElseGet(() -> Path.of("").toAbsolutePath());
-    }
-
-    private static Optional<Path> posizioneClassi() {
-        try {
-            CodeSource origine = App.class.getProtectionDomain().getCodeSource();
-            return origine == null
-                    ? Optional.empty()
-                    : Optional.of(Path.of(origine.getLocation().toURI()));
-        } catch (URISyntaxException | SecurityException e) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<Path> risaliFinoAllaRadice(Path partenza) {
-        for (Path cartella = partenza; cartella != null; cartella = cartella.getParent()) {
-            if (Files.exists(cartella.resolve(FILE_RADICE_PROGETTO))) {
-                return Optional.of(cartella);
-            }
-        }
-        return Optional.empty();
     }
 }

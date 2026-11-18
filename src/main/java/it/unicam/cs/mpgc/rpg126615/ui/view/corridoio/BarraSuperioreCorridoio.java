@@ -64,52 +64,12 @@ public class BarraSuperioreCorridoio {
 
     public BarraSuperioreCorridoio(Runnable suSalva, Runnable suCarica, Runnable suMenu) {
         this.barraXp.setStyle(stileBarra(COLORE_XP));
-
-        this.etichettaFerita.setStyle(STILE_FERITA);
-        this.etichettaFerita.setTooltip(this.suggerimentoFerita);
-        this.etichettaFerita.setVisible(false);
-        this.etichettaFerita.managedProperty().bind(this.etichettaFerita.visibleProperty());
-
-        this.etichettaMessaggio.setText(GUIDA);
-        this.etichettaMessaggio.setWrapText(true);
-        this.etichettaMessaggio.setTextAlignment(TextAlignment.CENTER);
-        this.etichettaMessaggio.setAlignment(Pos.CENTER);
-        this.etichettaMessaggio.setPrefSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
-        this.etichettaMessaggio.setMinSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
-        this.etichettaMessaggio.setMaxSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
-
-        this.etichettaAvviso.setVisible(false);
-        this.etichettaAvviso.setAlignment(Pos.CENTER);
-        this.etichettaAvviso.setMinHeight(ALTEZZA_AVVISO);
-        this.etichettaAvviso.setPrefHeight(ALTEZZA_AVVISO);
-
-        Button bottoneSalva = creaBottone("💾 Salva", "Salva la partita.", suSalva);
-        Button bottoneCarica = creaBottone("📂 Carica", "Carica una partita salvata.", suCarica);
-        Button bottoneMenu = creaBottone("🏠 Menu Principale", "Torna al menu iniziale.", suMenu);
-        HBox comandi = new HBox(8, bottoneSalva, bottoneCarica, bottoneMenu);
-        comandi.setAlignment(Pos.CENTER);
-        HBox intestazione = new HBox(24, this.etichettaTitolo, comandi);
-        intestazione.setAlignment(Pos.CENTER);
-
+        preparaEtichettaFerita();
+        preparaEtichettaMessaggio();
+        preparaEtichettaAvviso();
         nonTroncare(this.etichettaHp, this.etichettaXp, this.etichettaAttacco, this.etichettaDifesa,
                 this.etichettaFerita);
-
-        HBox pannelloStato = new HBox(10, this.etichettaEroe,
-                creaBlocco("HP", Tema.VERDE, this.barraHp, this.etichettaHp),
-                creaBlocco("XP", COLORE_XP, this.barraXp, this.etichettaXp),
-                this.etichettaAttacco, this.etichettaDifesa, this.etichettaFerita);
-        pannelloStato.setAlignment(Pos.CENTER);
-        pannelloStato.setPadding(new Insets(6, 14, 6, 14));
-        pannelloStato.setStyle(STILE_PANNELLO_STATO);
-        pannelloStato.setMaxWidth(HBox.USE_PREF_SIZE);
-
-        this.contenitore = new VBox(6, intestazione, pannelloStato, this.etichettaMessaggio, this.etichettaAvviso);
-        this.contenitore.setAlignment(Pos.TOP_CENTER);
-        this.contenitore.setPadding(new Insets(8, 10, 0, 10));
-        this.contenitore.setMinHeight(ALTEZZA);
-        this.contenitore.setPrefHeight(ALTEZZA);
-        this.contenitore.setMaxHeight(ALTEZZA);
-        this.contenitore.setStyle("-fx-background-color: " + Tema.SFONDO + ";");
+        this.contenitore = creaContenitore(creaIntestazione(suSalva, suCarica, suMenu), creaPannelloStato());
     }
 
     public Node getNodo() {
@@ -143,6 +103,64 @@ public class BarraSuperioreCorridoio {
 
     public void mostraMessaggio(String messaggio) {
         this.etichettaMessaggio.setText(messaggio);
+    }
+
+    private void preparaEtichettaFerita() {
+        this.etichettaFerita.setStyle(STILE_FERITA);
+        this.etichettaFerita.setTooltip(this.suggerimentoFerita);
+        this.etichettaFerita.setVisible(false);
+        this.etichettaFerita.managedProperty().bind(this.etichettaFerita.visibleProperty());
+    }
+
+    private void preparaEtichettaMessaggio() {
+        this.etichettaMessaggio.setText(GUIDA);
+        this.etichettaMessaggio.setWrapText(true);
+        this.etichettaMessaggio.setTextAlignment(TextAlignment.CENTER);
+        this.etichettaMessaggio.setAlignment(Pos.CENTER);
+        this.etichettaMessaggio.setPrefSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
+        this.etichettaMessaggio.setMinSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
+        this.etichettaMessaggio.setMaxSize(LARGHEZZA_MESSAGGIO, ALTEZZA_MESSAGGIO);
+    }
+
+    private void preparaEtichettaAvviso() {
+        this.etichettaAvviso.setVisible(false);
+        this.etichettaAvviso.setAlignment(Pos.CENTER);
+        this.etichettaAvviso.setMinHeight(ALTEZZA_AVVISO);
+        this.etichettaAvviso.setPrefHeight(ALTEZZA_AVVISO);
+    }
+
+    private HBox creaIntestazione(Runnable suSalva, Runnable suCarica, Runnable suMenu) {
+        Button bottoneSalva = creaBottone("💾 Salva", "Salva la partita.", suSalva);
+        Button bottoneCarica = creaBottone("📂 Carica", "Carica una partita salvata.", suCarica);
+        Button bottoneMenu = creaBottone("🏠 Menu Principale", "Torna al menu iniziale.", suMenu);
+        HBox comandi = new HBox(8, bottoneSalva, bottoneCarica, bottoneMenu);
+        comandi.setAlignment(Pos.CENTER);
+        HBox intestazione = new HBox(24, this.etichettaTitolo, comandi);
+        intestazione.setAlignment(Pos.CENTER);
+        return intestazione;
+    }
+
+    private HBox creaPannelloStato() {
+        HBox pannelloStato = new HBox(10, this.etichettaEroe,
+                creaBlocco("HP", Tema.VERDE, this.barraHp, this.etichettaHp),
+                creaBlocco("XP", COLORE_XP, this.barraXp, this.etichettaXp),
+                this.etichettaAttacco, this.etichettaDifesa, this.etichettaFerita);
+        pannelloStato.setAlignment(Pos.CENTER);
+        pannelloStato.setPadding(new Insets(6, 14, 6, 14));
+        pannelloStato.setStyle(STILE_PANNELLO_STATO);
+        pannelloStato.setMaxWidth(HBox.USE_PREF_SIZE);
+        return pannelloStato;
+    }
+
+    private VBox creaContenitore(Node intestazione, Node pannelloStato) {
+        VBox riquadro = new VBox(6, intestazione, pannelloStato, this.etichettaMessaggio, this.etichettaAvviso);
+        riquadro.setAlignment(Pos.TOP_CENTER);
+        riquadro.setPadding(new Insets(8, 10, 0, 10));
+        riquadro.setMinHeight(ALTEZZA);
+        riquadro.setPrefHeight(ALTEZZA);
+        riquadro.setMaxHeight(ALTEZZA);
+        riquadro.setStyle("-fx-background-color: " + Tema.SFONDO + ";");
+        return riquadro;
     }
 
     private void aggiornaFerita(Giocatore giocatore) {

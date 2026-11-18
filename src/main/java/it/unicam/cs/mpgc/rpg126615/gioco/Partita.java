@@ -144,13 +144,7 @@ public class Partita {
         }
         PianoTorre pianoDellaSconfitta = getPianoCorrente();
         if (pianoDellaSconfitta.haNemico()) {
-            Nemico nemico = pianoDellaSconfitta.getNemico();
-            if (riaffrontoInCorso) {
-                // Il piano era già stato superato: perdere una sfida facoltativa non lo riapre.
-                nemico.subisciDanno(nemico.getHp());
-            } else {
-                nemico.cura(nemico.getHpMax());
-            }
+            impostaStatoNemico(pianoDellaSconfitta.getNemico(), riaffrontoInCorso);
         }
         giocatore.perdiEsperienza(PENALITA_XP_SCONFITTA);
         giocatore.cura(giocatore.getHpMax());
@@ -188,14 +182,17 @@ public class Partita {
 
     private static void ripristinaPiano(PianoTorre piano, boolean superato) {
         if (piano.haNemico()) {
-            Nemico nemico = piano.getNemico();
-            if (superato) {
-                nemico.subisciDanno(nemico.getHp());
-            } else {
-                nemico.cura(nemico.getHpMax());
-            }
+            impostaStatoNemico(piano.getNemico(), superato);
         } else if (superato) {
             piano.ripristinaCompletato();
+        }
+    }
+
+    private static void impostaStatoNemico(Nemico nemico, boolean sconfitto) {
+        if (sconfitto) {
+            nemico.subisciDanno(nemico.getHp());
+        } else {
+            nemico.cura(nemico.getHpMax());
         }
     }
 

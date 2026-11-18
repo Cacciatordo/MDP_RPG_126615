@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class Mazzo {
@@ -15,9 +14,14 @@ public class Mazzo {
     private final List<Carta> pilaScarti = new ArrayList<>();
     private final List<Carta> carteDelMazzo = new ArrayList<>();
 
-    public Mazzo(Collection<? extends Carta> carte) {
-        if (carte == null || carte.stream().anyMatch(Objects::isNull)) {
+    public Mazzo(Collection<Carta> carte) {
+        if (carte == null) {
             throw new IllegalArgumentException("Le carte del mazzo non possono essere nulle");
+        }
+        for (Carta carta : carte) {
+            if (carta == null) {
+                throw new IllegalArgumentException("Le carte del mazzo non possono essere nulle");
+            }
         }
         carteDelMazzo.addAll(carte);
         ricomponiPilaPesca();

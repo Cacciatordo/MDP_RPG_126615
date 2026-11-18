@@ -5,7 +5,6 @@ import it.unicam.cs.mpgc.rpg126615.model.carta.Mano;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 final class CronacaBattaglia {
 
@@ -85,20 +84,19 @@ final class CronacaBattaglia {
 
     private static List<String> variazioni(StatisticheInGioco prima, StatisticheInGioco dopo) {
         List<String> righe = new ArrayList<>();
-        variazione("Il tuo attacco", prima.attaccoGiocatore(), dopo.attaccoGiocatore()).ifPresent(righe::add);
-        variazione("Il tuo scudo", prima.scudoGiocatore(), dopo.scudoGiocatore()).ifPresent(righe::add);
-        variazione("Attacco nemico", prima.attaccoNemico(), dopo.attaccoNemico()).ifPresent(righe::add);
-        variazione("Armatura nemica", prima.difesaNemico(), dopo.difesaNemico()).ifPresent(righe::add);
+        aggiungiVariazione(righe, "Il tuo attacco", prima.attaccoGiocatore(), dopo.attaccoGiocatore());
+        aggiungiVariazione(righe, "Il tuo scudo", prima.scudoGiocatore(), dopo.scudoGiocatore());
+        aggiungiVariazione(righe, "Attacco nemico", prima.attaccoNemico(), dopo.attaccoNemico());
+        aggiungiVariazione(righe, "Armatura nemica", prima.difesaNemico(), dopo.difesaNemico());
         return righe;
     }
 
-    private static Optional<String> variazione(String statistica, int prima, int dopo) {
+    private static void aggiungiVariazione(List<String> righe, String statistica, int prima, int dopo) {
         if (prima == dopo) {
-            return Optional.empty();
+            return;
         }
         int differenza = dopo - prima;
         String segno = differenza > 0 ? "+" : "";
-        return Optional.of(INDENTAZIONE + statistica + ": " + prima + " → " + dopo
-                + " (" + segno + differenza + ")");
+        righe.add(INDENTAZIONE + statistica + ": " + prima + " → " + dopo + " (" + segno + differenza + ")");
     }
 }

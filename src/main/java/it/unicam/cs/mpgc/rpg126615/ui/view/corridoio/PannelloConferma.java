@@ -16,7 +16,7 @@ import javafx.scene.text.TextAlignment;
 
 public class PannelloConferma {
 
-    private static final double LARGHEZZA = 420;
+    private static final double LARGHEZZA = 540;
     private static final double SPAZIO = 16;
     private static final double MARGINE = 20;
     private static final int DIMENSIONE_TITOLO = 14;
@@ -32,17 +32,17 @@ public class PannelloConferma {
     private final StackPane radice = new StackPane();
     private final Label titolo = creaEtichetta(DIMENSIONE_TITOLO, Tema.ORO);
     private final Label testo = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final Button bottoneConferma = creaBottone();
+    private final Button bottoneAnnulla = creaBottone();
     private Runnable azioneConferma;
 
     public PannelloConferma() {
         this.testo.setWrapText(true);
         this.testo.setTextAlignment(TextAlignment.CENTER);
 
-        Button conferma = creaBottone("Conferma");
-        conferma.setOnAction(e -> conferma());
-        Button annulla = creaBottone("Annulla");
-        annulla.setOnAction(e -> nascondi());
-        HBox bottoni = new HBox(SPAZIO, conferma, annulla);
+        this.bottoneConferma.setOnAction(e -> conferma());
+        this.bottoneAnnulla.setOnAction(e -> nascondi());
+        HBox bottoni = new HBox(SPAZIO, this.bottoneConferma, this.bottoneAnnulla);
         bottoni.setAlignment(Pos.CENTER);
 
         VBox riquadro = new VBox(SPAZIO, this.titolo, this.testo, bottoni);
@@ -61,9 +61,11 @@ public class PannelloConferma {
         return this.radice;
     }
 
-    public void mostra(String titoloPannello, String testoPannello, Runnable suConferma) {
-        this.titolo.setText(titoloPannello);
-        this.testo.setText(testoPannello);
+    public void mostra(RichiestaConferma richiesta, Runnable suConferma) {
+        this.titolo.setText(richiesta.titolo());
+        this.testo.setText(richiesta.testo());
+        this.bottoneConferma.setText(richiesta.etichettaConferma());
+        this.bottoneAnnulla.setText(richiesta.etichettaAnnulla());
         this.azioneConferma = suConferma;
         this.radice.setVisible(true);
     }
@@ -84,9 +86,10 @@ public class PannelloConferma {
         return etichetta;
     }
 
-    private static Button creaBottone(String testo) {
-        Button bottone = new Button(testo);
+    private static Button creaBottone() {
+        Button bottone = new Button();
         bottone.setStyle(STILE_BOTTONE);
+        bottone.setMinWidth(Region.USE_PREF_SIZE);
         bottone.setFocusTraversable(false);
         return bottone;
     }

@@ -3,15 +3,17 @@ package it.unicam.cs.mpgc.rpg126615.persistenza;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class ArchivioSalvataggiFile implements ArchivioSalvataggi {
 
@@ -30,19 +32,22 @@ public class ArchivioSalvataggiFile implements ArchivioSalvataggi {
 
     @Override
     public List<String> elencaNomi() throws ErrorePersistenzaException {
-        if (!Files.isDirectory(cartella)) {
-            return List.of();
+        List<String> nomi = new ArrayList<>();
+        File[] contenuto = cartella.toFile().listFiles();
+        if (contenuto == null) {
+            return nomi;
         }
-        try (Stream<Path> file = Files.list(cartella)) {
-            return file.map(percorso -> percorso.getFileName().toString())
-                    .filter(nome -> nome.endsWith(ESTENSIONE))
-                    .map(nome -> nome.substring(0, nome.length() - ESTENSIONE.length()))
-                    .filter(ArchivioSalvataggiFile::isNomeValido)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new ErrorePersistenzaException("Impossibile leggere la cartella dei salvataggi", e);
+        for (File file : contenuto) {
+            String nomeFile = file.getName();
+            if (nomeFile.endsWith(ESTENSIONE)) {
+                String nome = nomeFile.substring(0, nomeFile.length() - ESTENSIONE.length());
+                if (isNomeValido(nome)) {
+                    nomi.add(nome);
+                }
+            }
         }
+        Collections.sort(nomi);
+        return nomi;
     }
 
     @Override
