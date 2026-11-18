@@ -6,6 +6,7 @@ import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpritePersonaggio;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
 import it.unicam.cs.mpgc.rpg126615.ui.view.AspettoAvversario;
+import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -45,7 +46,9 @@ public class VistaBattaglia {
     private final RegistroBattaglia registro;
     private final Scene scena;
 
-    public VistaBattaglia(double larghezza, double altezza, Partita partita, Runnable suUscita) {
+    public VistaBattaglia(DimensioniFinestra dimensioni, Partita partita, Runnable suUscita) {
+        double larghezza = dimensioni.larghezza();
+        double altezza = dimensioni.altezza();
         this.partita = partita;
         this.suUscita = suUscita;
         this.battaglia = partita.getBattaglia().orElseThrow();

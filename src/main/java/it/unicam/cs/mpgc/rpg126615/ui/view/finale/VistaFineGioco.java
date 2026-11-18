@@ -4,6 +4,7 @@ import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
+import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -35,13 +36,13 @@ public class VistaFineGioco {
 
     private final Scene scena;
 
-    public VistaFineGioco(double larghezza, double altezza, String nomeEroe, int livello, int pianiScalati,
-                          Runnable suMenu) {
+    public VistaFineGioco(DimensioniFinestra dimensioni, RiepilogoFinale riepilogoFinale, Runnable suMenu) {
         Label titolo = creaEtichetta("TORRE CONQUISTATA!", DIMENSIONE_TITOLO, Tema.ORO);
         Label sottotitolo = creaEtichetta("Il Boss della Torre è caduto:\nla tua ascesa è compiuta.",
                 DIMENSIONE_TESTO, Tema.TESTO);
-        Label riepilogo = creaEtichetta(nomeEroe + " (Liv. " + livello + ")\nha scalato tutti i "
-                + pianiScalati + " piani della torre!", DIMENSIONE_TESTO, Tema.ORO);
+        Label riepilogo = creaEtichetta(riepilogoFinale.nomeEroe() + " (Liv. " + riepilogoFinale.livello()
+                        + ")\nha scalato tutti i " + riepilogoFinale.pianiScalati() + " piani della torre!",
+                DIMENSIONE_TESTO, Tema.ORO);
 
         VBox riquadro = new VBox(12, sottotitolo, riepilogo, creaBottoneMenu(suMenu));
         riquadro.setAlignment(Pos.CENTER);
@@ -59,8 +60,9 @@ public class VistaFineGioco {
         StackPane.setAlignment(eroe, Pos.BOTTOM_CENTER);
         StackPane.setMargin(eroe, new Insets(0, 0, DISTANZA_EROE_DAL_FONDO, 0));
 
-        StackPane radice = new StackPane(ScenarioCorridoio.crea(larghezza, altezza), contenuto, eroe);
-        this.scena = new Scene(radice, larghezza, altezza);
+        StackPane radice = new StackPane(
+                ScenarioCorridoio.crea(dimensioni.larghezza(), dimensioni.altezza()), contenuto, eroe);
+        this.scena = new Scene(radice, dimensioni.larghezza(), dimensioni.altezza());
     }
 
     public Scene getScena() {

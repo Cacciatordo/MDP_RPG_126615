@@ -37,12 +37,12 @@ public class EffettoColpo {
         this.livello = livello;
     }
 
-    public void colpisci(Node attaccante, int verso, Node bersaglio, String testo, String colore) {
+    public void colpisci(Node attaccante, int verso, Node bersaglio, EsitoColpo esito) {
         double spostamento = verso * DISTANZA_AFFONDO;
         TranslateTransition avanzata = new TranslateTransition(DURATA_AVANZATA, attaccante);
         avanzata.setFromX(0);
         avanzata.setToX(spostamento);
-        avanzata.setOnFinished(e -> reagisciAlColpo(bersaglio, testo, colore));
+        avanzata.setOnFinished(e -> reagisciAlColpo(bersaglio, esito));
 
         TranslateTransition ritorno = new TranslateTransition(DURATA_RITORNO, attaccante);
         ritorno.setFromX(spostamento);
@@ -51,9 +51,9 @@ public class EffettoColpo {
         avviaSostituendoLaPrecedente(attaccante, new SequentialTransition(avanzata, ritorno));
     }
 
-    private void reagisciAlColpo(Node bersaglio, String testo, String colore) {
+    private void reagisciAlColpo(Node bersaglio, EsitoColpo esito) {
         avviaSostituendoLaPrecedente(bersaglio, creaScossa(bersaglio));
-        mostraTestoFluttuante(bersaglio, testo, colore);
+        mostraTestoFluttuante(bersaglio, esito.testo(), esito.colore());
     }
 
     private Animation creaScossa(Node bersaglio) {

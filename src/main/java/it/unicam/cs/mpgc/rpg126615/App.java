@@ -3,11 +3,14 @@ package it.unicam.cs.mpgc.rpg126615;
 import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggiFile;
 import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.ui.view.battaglia.VistaBattaglia;
 import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.ArrivoNelCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.AzioniCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.DialoghiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.IngressoNelCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.VistaCorridoio;
+import it.unicam.cs.mpgc.rpg126615.ui.view.finale.RiepilogoFinale;
 import it.unicam.cs.mpgc.rpg126615.ui.view.finale.VistaFineGioco;
 import it.unicam.cs.mpgc.rpg126615.ui.view.menu.AzioniMenu;
 import it.unicam.cs.mpgc.rpg126615.ui.view.menu.VistaIniziale;
@@ -16,22 +19,27 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Random;
+import java.security.CodeSource;
+import java.util.Optional;
 
 public class App extends Application {
 
     private static final double LARGHEZZA_FINESTRA = 820;
     private static final double ALTEZZA_FINESTRA = 620;
+    private static final DimensioniFinestra DIMENSIONI_FINESTRA =
+            new DimensioniFinestra(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA);
     private static final String TITOLO_FINESTRA = "Emberfall";
-    private static final long SEME_TORRE = 126615;
-    private static final Path CARTELLA_SALVATAGGI = Path.of("salvataggi");
+    private static final String CARTELLA_SALVATAGGI = "salvataggi";
+    private static final String FILE_RADICE_PROGETTO = "build.gradle";
 
     private Stage finestra;
     private Partita partita;
     private double posizioneEroe;
     private final DialoghiSalvataggio dialoghi = new DialoghiSalvataggio(
-            new ArchivioSalvataggiFile(CARTELLA_SALVATAGGI));
+            new ArchivioSalvataggiFile(radiceProgetto().resolve(CARTELLA_SALVATAGGI)));
 
     @Override
     public void start(Stage primaryStage) {
@@ -46,18 +54,18 @@ public class App extends Application {
         AzioniMenu azioni = new AzioniMenu(
                 (nome, piani) -> iniziaNuovaPartita(nome, piani),
                 () -> this.dialoghi.scegliDaCaricare().ifPresent(dati -> caricaPartita(dati)));
-        VistaIniziale vista = new VistaIniziale(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA, azioni);
+        VistaIniziale vista = new VistaIniziale(DIMENSIONI_FINESTRA, azioni);
         this.finestra.setScene(vista.getScena());
     }
 
     private void iniziaNuovaPartita(String nomeEroe, int piani) {
-        this.partita = Partita.nuova(nomeEroe, piani, new Random(SEME_TORRE));
+        this.partita = Partita.nuova(nomeEroe, piani);
         mostraCorridoio();
     }
 
     private void caricaPartita(DatiSalvataggio dati) {
         try {
-            Partita caricata = Partita.nuova("", dati.piani().size(), new Random(SEME_TORRE));
+            Partita caricata = Partita.nuova("", dati.piani().size(), dati.semeTorre());
             caricata.ripristina(dati);
             this.partita = caricata;
         } catch (IllegalArgumentException errore) {
@@ -89,14 +97,14 @@ public class App extends Application {
                 () -> vaiAlPianoPrecedente(),
                 () -> tornaAlMenu(),
                 dati -> caricaPartita(dati));
-        VistaCorridoio vista = new VistaCorridoio(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA, this.partita,
-                this.dialoghi, azioni, arrivo, this.posizioneEroe);
+        VistaCorridoio vista = new VistaCorridoio(DIMENSIONI_FINESTRA, this.partita, this.dialoghi, azioni,
+                new IngressoNelCorridoio(arrivo, this.posizioneEroe));
         this.finestra.setScene(vista.getScena());
     }
 
     private void mostraBattaglia(double posizione) {
         this.posizioneEroe = posizione;
-        VistaBattaglia vista = new VistaBattaglia(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA, this.partita,
+        VistaBattaglia vista = new VistaBattaglia(DIMENSIONI_FINESTRA, this.partita,
                 () -> tornaDallaBattaglia());
         this.finestra.setScene(vista.getScena());
     }
@@ -115,9 +123,9 @@ public class App extends Application {
     }
 
     private void mostraFineGioco() {
-        VistaFineGioco vista = new VistaFineGioco(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA,
-                this.partita.getGiocatore().getNome(), this.partita.getGiocatore().getLivello(),
-                this.partita.getTotalePiani(), () -> mostraMenu());
+        RiepilogoFinale riepilogo = new RiepilogoFinale(this.partita.getGiocatore().getNome(),
+                this.partita.getGiocatore().getLivello(), this.partita.getTotalePiani());
+        VistaFineGioco vista = new VistaFineGioco(DIMENSIONI_FINESTRA, riepilogo, () -> mostraMenu());
         this.finestra.setScene(vista.getScena());
     }
 
@@ -129,5 +137,31 @@ public class App extends Application {
     private void vaiAlPianoPrecedente() {
         this.partita.tornaAlPianoPrecedente();
         mostraCorridoio(ArrivoNelCorridoio.DA_SOPRA);
+    }
+
+    private static Path radiceProgetto() {
+        return posizioneClassi()
+                .flatMap(App::risaliFinoAllaRadice)
+                .orElseGet(() -> Path.of("").toAbsolutePath());
+    }
+
+    private static Optional<Path> posizioneClassi() {
+        try {
+            CodeSource origine = App.class.getProtectionDomain().getCodeSource();
+            return origine == null
+                    ? Optional.empty()
+                    : Optional.of(Path.of(origine.getLocation().toURI()));
+        } catch (URISyntaxException | SecurityException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<Path> risaliFinoAllaRadice(Path partenza) {
+        for (Path cartella = partenza; cartella != null; cartella = cartella.getParent()) {
+            if (Files.exists(cartella.resolve(FILE_RADICE_PROGETTO))) {
+                return Optional.of(cartella);
+            }
+        }
+        return Optional.empty();
     }
 }

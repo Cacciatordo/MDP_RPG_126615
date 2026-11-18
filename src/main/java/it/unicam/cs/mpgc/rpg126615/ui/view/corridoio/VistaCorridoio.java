@@ -4,6 +4,7 @@ import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
+import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -61,8 +62,12 @@ public class VistaCorridoio {
     private boolean interazioneAvviata;
     private boolean richiestaMostrata;
 
-    public VistaCorridoio(double larghezza, double altezza, Partita partita, DialoghiSalvataggio dialoghi,
-                          AzioniCorridoio azioni, ArrivoNelCorridoio arrivo, double posizioneEroe) {
+    public VistaCorridoio(DimensioniFinestra dimensioni, Partita partita, DialoghiSalvataggio dialoghi,
+                          AzioniCorridoio azioni, IngressoNelCorridoio ingresso) {
+        double larghezza = dimensioni.larghezza();
+        double altezza = dimensioni.altezza();
+        ArrivoNelCorridoio arrivo = ingresso.arrivo();
+        double posizioneEroe = ingresso.posizioneEroe();
         this.partita = partita;
         this.dialoghi = dialoghi;
         this.larghezza = larghezza;

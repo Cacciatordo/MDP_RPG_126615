@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -27,11 +28,13 @@ public class BarraSuperioreCorridoio {
     private static final String COLORE_XP = "#a855f7";
     private static final String COLORE_DIFESA = "#f97316";
     private static final String COLORE_AVVISO = "#4a1d6e";
+    private static final String COLORE_AVVISO_CURE_BLOCCATE = "#7f1d1d";
+    private static final int LIVELLI_EXTRA_SENZA_CURE = 4;
     private static final String PANNELLO_SOPRA = "#3d2a1e";
     private static final double SOGLIA_HP_ALTI = 0.5;
     private static final double SOGLIA_HP_BASSI = 0.25;
-    private static final double LARGHEZZA_BARRA_HP = 120;
-    private static final double LARGHEZZA_BARRA_XP = 100;
+    private static final double LARGHEZZA_BARRA_HP = 80;
+    private static final double LARGHEZZA_BARRA_XP = 70;
     private static final double LARGHEZZA_MESSAGGIO = 780;
     private static final double ALTEZZA_MESSAGGIO = 28;
     private static final double ALTEZZA_AVVISO = 26;
@@ -40,6 +43,8 @@ public class BarraSuperioreCorridoio {
     private static final int DIMENSIONE_MESSAGGIO = 9;
     private static final int DIMENSIONE_BOTTONE = 9;
     private static final int DIMENSIONE_AVVISO = 10;
+    private static final String STILE_FERITA = "-fx-background-color: " + COLORE_AVVISO_CURE_BLOCCATE + "; "
+            + "-fx-padding: 2 8; -fx-border-color: " + Tema.ROSSO + "; -fx-border-width: 2;";
     private static final String STILE_PANNELLO_STATO = "-fx-background-color: " + Tema.PANNELLO + "; "
             + "-fx-border-color: " + Tema.BORDO + "; -fx-border-width: 3;";
 
@@ -51,12 +56,19 @@ public class BarraSuperioreCorridoio {
     private final Label etichettaXp = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
     private final Label etichettaAttacco = creaEtichetta(DIMENSIONE_STATO, Tema.ORO);
     private final Label etichettaDifesa = creaEtichetta(DIMENSIONE_STATO, COLORE_DIFESA);
+    private final Label etichettaFerita = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
+    private final Tooltip suggerimentoFerita = new Tooltip();
     private final Label etichettaMessaggio = creaEtichetta(DIMENSIONE_MESSAGGIO, Tema.TESTO_SECONDARIO);
     private final Label etichettaAvviso = creaEtichetta(DIMENSIONE_AVVISO, Tema.ORO);
     private final VBox contenitore;
 
     public BarraSuperioreCorridoio(Runnable suSalva, Runnable suCarica, Runnable suMenu) {
         this.barraXp.setStyle(stileBarra(COLORE_XP));
+
+        this.etichettaFerita.setStyle(STILE_FERITA);
+        this.etichettaFerita.setTooltip(this.suggerimentoFerita);
+        this.etichettaFerita.setVisible(false);
+        this.etichettaFerita.managedProperty().bind(this.etichettaFerita.visibleProperty());
 
         this.etichettaMessaggio.setText(GUIDA);
         this.etichettaMessaggio.setWrapText(true);
@@ -79,10 +91,13 @@ public class BarraSuperioreCorridoio {
         HBox intestazione = new HBox(24, this.etichettaTitolo, comandi);
         intestazione.setAlignment(Pos.CENTER);
 
-        HBox pannelloStato = new HBox(16, this.etichettaEroe,
+        nonTroncare(this.etichettaHp, this.etichettaXp, this.etichettaAttacco, this.etichettaDifesa,
+                this.etichettaFerita);
+
+        HBox pannelloStato = new HBox(10, this.etichettaEroe,
                 creaBlocco("HP", Tema.VERDE, this.barraHp, this.etichettaHp),
                 creaBlocco("XP", COLORE_XP, this.barraXp, this.etichettaXp),
-                this.etichettaAttacco, this.etichettaDifesa);
+                this.etichettaAttacco, this.etichettaDifesa, this.etichettaFerita);
         pannelloStato.setAlignment(Pos.CENTER);
         pannelloStato.setPadding(new Insets(6, 14, 6, 14));
         pannelloStato.setStyle(STILE_PANNELLO_STATO);
@@ -117,8 +132,10 @@ public class BarraSuperioreCorridoio {
         this.etichettaAttacco.setText("⚔ " + giocatore.getAttacco());
         this.etichettaDifesa.setText("🛡 " + giocatore.getDifesa());
 
+        aggiornaFerita(giocatore);
+
         if (tipo == TipoPiano.BOSS || tipo == TipoPiano.BOSS_FINALE) {
-            mostraAvvisoBoss(livelloConsigliato(numero));
+            mostraAvvisoBoss(livelloConsigliato(numero), giocatore.isGuarigioneBloccata());
         } else {
             this.etichettaAvviso.setVisible(false);
         }
@@ -128,9 +145,24 @@ public class BarraSuperioreCorridoio {
         this.etichettaMessaggio.setText(messaggio);
     }
 
-    private void mostraAvvisoBoss(int livello) {
-        this.etichettaAvviso.setText("⚠ ATTENZIONE: PIANO BOSS! Livello consigliato: Liv. " + livello);
-        this.etichettaAvviso.setStyle("-fx-background-color: " + COLORE_AVVISO + "; -fx-border-color: "
+    private void aggiornaFerita(Giocatore giocatore) {
+        this.etichettaFerita.setVisible(giocatore.isGuarigioneBloccata());
+        if (giocatore.isGuarigioneBloccata()) {
+            int piani = giocatore.getPianiFeritaRimanenti();
+            this.etichettaFerita.setText("🩸 " + piani);
+            this.suggerimentoFerita.setText("Ferita: le cure restano bloccate per altri " + piani + " piani.");
+        }
+    }
+
+    private void mostraAvvisoBoss(int livello, boolean cureBloccate) {
+        if (cureBloccate) {
+            this.etichettaAvviso.setText("⚠ ATTENZIONE PIANO BOSS! 🩸 CURE BLOCCATE! Livello consigliato: Liv. "
+                    + (livello + LIVELLI_EXTRA_SENZA_CURE) + " (Pericolo Estremo)");
+        } else {
+            this.etichettaAvviso.setText("⚠ ATTENZIONE: PIANO BOSS! Livello consigliato: Liv. " + livello);
+        }
+        String colore = cureBloccate ? COLORE_AVVISO_CURE_BLOCCATE : COLORE_AVVISO;
+        this.etichettaAvviso.setStyle("-fx-background-color: " + colore + "; -fx-border-color: "
                 + Tema.ROSSO + "; -fx-border-width: 2; -fx-padding: 3 12;");
         this.etichettaAvviso.setVisible(true);
     }
@@ -153,6 +185,12 @@ public class BarraSuperioreCorridoio {
             return 1;
         }
         return Math.min(1, (double) giocatore.getEsperienza() / prossimo);
+    }
+
+    private static void nonTroncare(Label... etichette) {
+        for (Label etichetta : etichette) {
+            etichetta.setMinWidth(Region.USE_PREF_SIZE);
+        }
     }
 
     private static HBox creaBlocco(String nome, String colore, ProgressBar barra, Label valore) {

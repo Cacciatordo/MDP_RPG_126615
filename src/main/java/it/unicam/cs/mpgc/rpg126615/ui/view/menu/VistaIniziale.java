@@ -6,6 +6,7 @@ import it.unicam.cs.mpgc.rpg126615.ui.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpritePersonaggio;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
+import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -67,7 +68,7 @@ public class VistaIniziale {
     private final Label etichettaErrore = creaEtichetta("", Tema.ERRORE);
     private final Scene scena;
 
-    public VistaIniziale(double larghezza, double altezza, AzioniMenu azioni) {
+    public VistaIniziale(DimensioniFinestra dimensioni, AzioniMenu azioni) {
         this.azioni = azioni;
 
         Button nuovaPartita = creaBottone("⚔ INIZIA NUOVA PARTITA", Tema.ORO, ORO_SOPRA, Tema.SFONDO);
@@ -82,8 +83,9 @@ public class VistaIniziale {
         contenuto.setAlignment(Pos.CENTER);
         contenuto.setPadding(new Insets(PADDING_SCHERMATA));
 
-        StackPane radice = new StackPane(ScenarioCorridoio.crea(larghezza, altezza), contenuto);
-        this.scena = new Scene(radice, larghezza, altezza);
+        StackPane radice = new StackPane(
+                ScenarioCorridoio.crea(dimensioni.larghezza(), dimensioni.altezza()), contenuto);
+        this.scena = new Scene(radice, dimensioni.larghezza(), dimensioni.altezza());
     }
 
     public Scene getScena() {

@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.ui.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
-import it.unicam.cs.mpgc.rpg126615.model.progressione.Livellabile;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.ui.stile.Tema;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -11,6 +11,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+
+import java.util.function.Supplier;
 
 public class SchedaCombattente {
 
@@ -23,14 +25,19 @@ public class SchedaCombattente {
     private static final int DIMENSIONE_STATISTICHE = 8;
 
     private final Combattente combattente;
+    private final Supplier<String> fornitoreNome;
+    private final EtichetteStatistiche etichette;
     private final Label etichettaNome = creaEtichetta(DIMENSIONE_NOME, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
     private final Label etichettaHp = creaEtichetta(DIMENSIONE_HP, Tema.TESTO);
     private final Label etichettaStatistiche = creaEtichetta(DIMENSIONE_STATISTICHE, Tema.ORO);
     private final VBox contenitore;
 
-    public SchedaCombattente(Combattente combattente, String coloreBarra) {
+    private SchedaCombattente(Combattente combattente, Supplier<String> fornitoreNome,
+                              EtichetteStatistiche etichette, String coloreBarra) {
         this.combattente = combattente;
+        this.fornitoreNome = fornitoreNome;
+        this.etichette = etichette;
         this.barraHp.setPrefWidth(LARGHEZZA_BARRA);
         this.barraHp.setStyle("-fx-accent: " + coloreBarra + "; -fx-control-inner-background: " + Tema.SFONDO + "; "
                 + "-fx-background-radius: 0; -fx-border-color: " + Tema.BORDO + "; -fx-border-width: 2;");
@@ -44,29 +51,31 @@ public class SchedaCombattente {
         aggiorna();
     }
 
+    public static SchedaCombattente perEroe(Giocatore eroe, String coloreBarra) {
+        return new SchedaCombattente(eroe,
+                () -> eroe.getNome() + " (Liv. " + eroe.getLivello() + ")",
+                EtichetteStatistiche.EROE, coloreBarra);
+    }
+
+    public static SchedaCombattente perAvversario(Combattente avversario, String coloreBarra) {
+        return new SchedaCombattente(avversario, avversario::getNome,
+                EtichetteStatistiche.AVVERSARIO, coloreBarra);
+    }
+
     public Node getNodo() {
         return this.contenitore;
     }
 
     public void aggiorna() {
-        this.etichettaNome.setText(creaNome());
+        this.etichettaNome.setText(this.fornitoreNome.get());
         this.barraHp.setProgress((double) this.combattente.getHp() / this.combattente.getHpMax());
         this.etichettaHp.setText("HP: " + this.combattente.getHp() + " / " + this.combattente.getHpMax());
         this.etichettaStatistiche.setText(creaStatistiche());
     }
 
-    private String creaNome() {
-        if (this.combattente instanceof Livellabile livellabile) {
-            return this.combattente.getNome() + " (Liv. " + livellabile.getLivello() + ")";
-        }
-        return this.combattente.getNome();
-    }
-
     private String creaStatistiche() {
-        if (this.combattente instanceof Livellabile) {
-            return "⚔ Attacco: " + this.combattente.getAttacco() + "  |  🛡 Scudo: " + this.combattente.getDifesa();
-        }
-        return "⚔ Potenza: " + this.combattente.getAttacco() + "  |  🛡 Armatura: " + this.combattente.getDifesa();
+        return "⚔ " + this.etichette.getAttacco() + ": " + this.combattente.getAttacco()
+                + "  |  🛡 " + this.etichette.getDifesa() + ": " + this.combattente.getDifesa();
     }
 
     private static Label creaEtichetta(int dimensione, String colore) {

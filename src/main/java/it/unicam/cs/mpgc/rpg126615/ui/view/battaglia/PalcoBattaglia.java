@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.ui.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.ui.pixelart.SpritePersonaggio;
@@ -37,7 +38,7 @@ public class PalcoBattaglia {
     private final SchedaCombattente schedaEroe;
     private final SchedaCombattente schedaNemico;
 
-    public PalcoBattaglia(double larghezza, Combattente eroe, Combattente nemico,
+    public PalcoBattaglia(double larghezza, Giocatore eroe, Combattente nemico,
                           SpritePersonaggio aspettoNemico) {
         this.livello.setPickOnBounds(false);
         aggiungiTorce(larghezza);
@@ -46,8 +47,8 @@ public class PalcoBattaglia {
         this.spriteEroe = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_EROE, SCALA_EROE);
         aggiungiCombattente(this.spriteNemico, larghezza * POSIZIONE_NEMICO, VERSO_SINISTRA);
         aggiungiCombattente(this.spriteEroe, larghezza * POSIZIONE_EROE, VERSO_DESTRA);
-        this.schedaNemico = new SchedaCombattente(nemico, Tema.ROSSO);
-        this.schedaEroe = new SchedaCombattente(eroe, Tema.VERDE);
+        this.schedaNemico = SchedaCombattente.perAvversario(nemico, Tema.ROSSO);
+        this.schedaEroe = SchedaCombattente.perEroe(eroe, Tema.VERDE);
         aggiungiScheda(this.schedaNemico, larghezza * POSIZIONE_NEMICO);
         aggiungiScheda(this.schedaEroe, larghezza * POSIZIONE_EROE);
     }
@@ -62,13 +63,15 @@ public class PalcoBattaglia {
     }
 
     public void mostraAttaccoEroe(int danno) {
-        this.effettoColpo.colpisci(this.spriteEroe, VERSO_DESTRA, this.spriteNemico, "-" + danno, Tema.ORO);
+        this.effettoColpo.colpisci(this.spriteEroe, VERSO_DESTRA, this.spriteNemico,
+                new EsitoColpo("-" + danno, Tema.ORO));
     }
 
     public void mostraAttaccoNemico(int danno) {
         String testo = danno > 0 ? "-" + danno : "Bloccato";
         String colore = danno > 0 ? Tema.ROSSO : Tema.TESTO_SECONDARIO;
-        this.effettoColpo.colpisci(this.spriteNemico, VERSO_SINISTRA, this.spriteEroe, testo, colore);
+        this.effettoColpo.colpisci(this.spriteNemico, VERSO_SINISTRA, this.spriteEroe,
+                new EsitoColpo(testo, colore));
     }
 
     public void avvia() {
