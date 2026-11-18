@@ -2,10 +2,12 @@ package it.unicam.cs.mpgc.rpg126615.model.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
 import it.unicam.cs.mpgc.rpg126615.model.carta.ContestoCarta;
+import it.unicam.cs.mpgc.rpg126615.model.carta.TipoCarta;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Battaglia {
 
@@ -23,6 +25,7 @@ public class Battaglia {
         this.nemico = nemico;
         this.contestoCarte = new ContestoBattaglia(giocatore, nemico);
         this.giocatore.azzeraModificatori();
+        this.nemico.azzeraModificatori();
         this.giocatore.getMazzo().ripristinaMazzoCompleto(this.giocatore.getMano());
         this.giocatore.pescaCarte(CARTE_INIZIALI_BATTAGLIA);
         this.giocatore.resetPA();
@@ -52,68 +55,132 @@ public class Battaglia {
         controllaBattagliaInCorso();
         List<Carta> carte = giocatore.getMano().getCarte();
         if (indiceCarta < 0 || indiceCarta >= carte.size()) {
-            return "Carta non valida.\n";
+            return aCapo(CronacaBattaglia.cartaNonValida());
         }
         Carta carta = carte.get(indiceCarta);
-        if (!carta.isGiocabile(giocatore.getMano())) {
-            return "Non puoi giocare " + carta.getNome() + " in questo momento.\n";
+        Optional<String> rifiuto = motivoDelRifiuto(carta);
+        if (rifiuto.isPresent()) {
+            return aCapo(rifiuto.get());
         }
-        if (giocatore.getPuntiAzione() < carta.getCostoPA()) {
-            return "Punti azione insufficienti per giocare " + carta.getNome() + ".\n";
-        }
-        giocatore.consumaPA(carta.getCostoPA());
-        giocatore.getMano().rimuoviCarta(carta);
-        giocatore.getMazzo().scarta(carta);
-        carta.applica(contestoCarte);
-        return "Giochi la carta " + carta.getNome() + ".\n";
+        return aCapo(giocaCarta(carta));
     }
 
     public String attaccaConEroe() {
         controllaBattagliaInCorso();
         if (attaccoEseguitoNelTurno) {
-            return "Hai già attaccato in questo turno.\n";
+            return aCapo(CronacaBattaglia.attaccoGiaEseguito());
         }
         if (giocatore.getPuntiAzione() < COSTO_PA_ATTACCO_BASE) {
-            return "Punti azione insufficienti per attaccare.\n";
+            return aCapo(CronacaBattaglia.attaccoSenzaPuntiAzione());
         }
         giocatore.consumaPA(COSTO_PA_ATTACCO_BASE);
         attaccoEseguitoNelTurno = true;
-        StringBuilder racconto = new StringBuilder();
+        int attacco = giocatore.getAttacco();
+        int armaturaNemico = nemico.getDifesa();
         int danno = giocatore.attacca(nemico);
-        racconto.append("Colpisci ").append(nemico.getNome())
-                .append(" per ").append(danno).append(" danni.\n");
+        String racconto = CronacaBattaglia.attaccoDelGiocatore(new EsitoAttacco(attacco, armaturaNemico, danno));
         if (!nemico.isVivo()) {
-            giocatore.aggiungiEsperienza(nemico.getEsperienzaData());
-            racconto.append(nemico.getNome()).append(" è stato sconfitto! Ottieni ")
-                    .append(nemico.getEsperienzaData()).append(" punti esperienza.\n");
+            racconto += "\n" + concludiConVittoria();
         }
-        return racconto.toString();
+        return aCapo(racconto);
     }
 
     public String terminaTurnoGiocatore() {
         controllaBattagliaInCorso();
-        StringBuilder racconto = new StringBuilder();
-        int danno = nemico.attacca(giocatore);
-        racconto.append(nemico.getNome()).append(" ti colpisce per ")
-                .append(danno).append(" danni.\n");
+        StatisticheInGioco primaDelNuovoRound = statisticheInGioco();
+        String racconto = nemicoAttacca();
         if (!giocatore.isVivo()) {
-            racconto.append("Sei stato sconfitto.\n");
-            return racconto.toString();
+            return aCapo(racconto + "\n" + concludiConSconfitta());
         }
+        iniziaNuovoRound();
+        return aCapo(racconto + raccontaEffettiSvaniti(primaDelNuovoRound));
+    }
+
+    private Optional<String> motivoDelRifiuto(Carta carta) {
+        if (!carta.isGiocabile(giocatore.getMano())) {
+            return Optional.of(CronacaBattaglia.manoPiena(carta));
+        }
+        if (giocatore.getPuntiAzione() < carta.getCostoPA()) {
+            return Optional.of(CronacaBattaglia.cartaSenzaPuntiAzione(carta));
+        }
+        return Optional.empty();
+    }
+
+    private String giocaCarta(Carta carta) {
+        StatisticheInGioco prima = statisticheInGioco();
+        int hpPrima = giocatore.getHp();
+        boolean curaAnnullata = carta.getTipo() == TipoCarta.CURA && giocatore.isGuarigioneBloccata();
+        giocatore.consumaPA(carta.getCostoPA());
+        giocatore.getMano().rimuoviCarta(carta);
+        giocatore.getMazzo().scarta(carta);
+        int carteInManoPrima = giocatore.getMano().getDimensione();
+        carta.applica(contestoCarte);
+        String racconto = descriviEffetto(carta, prima, hpPrima, curaAnnullata);
+        int cartePescate = giocatore.getMano().getDimensione() - carteInManoPrima;
+        if (cartePescate > 0) {
+            racconto += "\n" + CronacaBattaglia.cartePescate(cartePescate);
+        }
+        return racconto;
+    }
+
+    private String descriviEffetto(Carta carta, StatisticheInGioco prima, int hpPrima, boolean curaAnnullata) {
+        if (curaAnnullata) {
+            return CronacaBattaglia.curaAnnullata(carta, giocatore.getPianiFeritaRimanenti());
+        }
+        if (carta.getTipo() == TipoCarta.CURA) {
+            return CronacaBattaglia.curaRiuscita(carta, giocatore.getHp() - hpPrima);
+        }
+        return CronacaBattaglia.cartaUsata(carta, prima, statisticheInGioco());
+    }
+
+    private String nemicoAttacca() {
+        int attaccoNemico = nemico.getAttacco();
+        int scudoGiocatore = giocatore.getDifesa();
+        int danno = nemico.attacca(giocatore);
+        return CronacaBattaglia.attaccoDelNemico(nemico.getNome(),
+                new EsitoAttacco(attaccoNemico, scudoGiocatore, danno));
+    }
+
+    private void iniziaNuovoRound() {
+        giocatore.azzeraModificatori();
+        nemico.azzeraModificatori();
         giocatore.resetPA();
         attaccoEseguitoNelTurno = false;
-        int cartePescate = giocatore.pescaCarte(CARTE_PESCATE_INIZIO_TURNO);
-        racconto.append("Inizia un nuovo turno.");
-        if (cartePescate > 0) {
-            racconto.append(" Peschi una carta.");
+        giocatore.pescaCarte(CARTE_PESCATE_INIZIO_TURNO);
+    }
+
+    private String raccontaEffettiSvaniti(StatisticheInGioco primaDelNuovoRound) {
+        StatisticheInGioco dopo = statisticheInGioco();
+        if (dopo.equals(primaDelNuovoRound)) {
+            return "";
         }
-        racconto.append("\n");
-        return racconto.toString();
+        return "\n" + CronacaBattaglia.effettiSvaniti(primaDelNuovoRound, dopo);
+    }
+
+    private String concludiConVittoria() {
+        int esperienza = nemico.getEsperienzaData();
+        giocatore.aggiungiEsperienza(esperienza);
+        giocatore.azzeraModificatori();
+        return CronacaBattaglia.vittoria(esperienza);
+    }
+
+    private String concludiConSconfitta() {
+        giocatore.azzeraModificatori();
+        return CronacaBattaglia.sconfitta();
+    }
+
+    private StatisticheInGioco statisticheInGioco() {
+        return new StatisticheInGioco(giocatore.getAttacco(), giocatore.getDifesa(),
+                nemico.getAttacco(), nemico.getDifesa());
     }
 
     private void controllaBattagliaInCorso() {
         if (isFinita()) {
             throw new IllegalStateException("La battaglia è già finita");
         }
+    }
+
+    private static String aCapo(String testo) {
+        return testo + "\n";
     }
 }

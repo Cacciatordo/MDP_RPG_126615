@@ -33,25 +33,25 @@ public class FabbricaCarte {
 
     private static Carta potenziamentoAttacco(Livellabile riferimento) {
         return new CartaBuff("Potenziamento Attacco",
-                "Il tuo attacco sale di " + VALORE + " per lo scontro",
+                "Il tuo attacco sale di " + VALORE + " per il round",
                 VALORE_BASE_STATISTICA, riferimento, StatisticaBersaglio.ATTACCO);
     }
 
     private static Carta barrieraDifensiva(Livellabile riferimento) {
         return new CartaBuff("Barriera Difensiva",
-                "Il tuo scudo sale di " + VALORE + " per lo scontro",
+                "Il tuo scudo sale di " + VALORE + " per il round",
                 VALORE_BASE_STATISTICA, riferimento, StatisticaBersaglio.SCUDO);
     }
 
     private static Carta indebolimento(Livellabile riferimento) {
         return new CartaDebuff("Indebolimento",
-                "Attacco nemico -" + VALORE + " per lo scontro",
+                "Attacco nemico -" + VALORE + " per il round",
                 VALORE_BASE_STATISTICA, riferimento, StatisticaBersaglio.ATTACCO);
     }
 
     private static Carta spaccaArmatura(Livellabile riferimento) {
         return new CartaDebuff("Spacca-Armatura",
-                "Armatura nemica -" + VALORE + " per lo scontro",
+                "Armatura nemica -" + VALORE + " per il round",
                 VALORE_BASE_STATISTICA, riferimento, StatisticaBersaglio.SCUDO);
     }
 

@@ -41,6 +41,9 @@ public class ContestoBattaglia implements ContestoCarta {
 
     @Override
     public void richiediCura(int quantita) {
+        if (giocatore.isGuarigioneBloccata()) {
+            return;
+        }
         giocatore.cura(quantita);
     }
 }
