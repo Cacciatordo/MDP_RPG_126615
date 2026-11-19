@@ -11,10 +11,7 @@ public class CartaBuff extends CartaStatistica {
 
     @Override
     public TipoCarta getTipo() {
-        return switch (getBersaglio()) {
-            case ATTACCO -> TipoCarta.POTENZIAMENTO_ATTACCO;
-            case SCUDO -> TipoCarta.POTENZIAMENTO_DIFESA;
-        };
+        return getBersaglio().getTipoPotenziamento();
     }
 
     @Override

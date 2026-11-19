@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class FabbricaCarte {
+public class FabbricaCarte implements CreatoreMazzo {
 
     private static final String VALORE = CartaAstratta.SEGNAPOSTO_VALORE;
     private static final int VALORE_BASE_STATISTICA = 10;
@@ -14,6 +14,7 @@ public class FabbricaCarte {
     private static final int COPIE_STANDARD = 2;
     private static final int COPIE_PESCA = 1;
 
+    @Override
     public List<Carta> creaMazzoIniziale(Livellabile riferimento) {
         List<Carta> carte = new ArrayList<>();
         aggiungiCopie(carte, COPIE_STANDARD, () -> potenziamentoAttacco(riferimento));

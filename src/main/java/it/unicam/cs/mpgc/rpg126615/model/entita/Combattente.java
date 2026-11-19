@@ -1,6 +1,8 @@
 package it.unicam.cs.mpgc.rpg126615.model.entita;
 
-public interface Combattente {
+import it.unicam.cs.mpgc.rpg126615.model.carta.StatisticheModificabili;
+
+public interface Combattente extends StatisticheModificabili {
 
     String getNome();
 
@@ -13,10 +15,6 @@ public interface Combattente {
     int getAttacco();
 
     int getDifesa();
-
-    void modificaAttacco(int variazione);
-
-    void modificaDifesa(int variazione);
 
     void azzeraModificatori();
 

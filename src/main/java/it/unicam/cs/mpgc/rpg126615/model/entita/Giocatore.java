@@ -1,6 +1,6 @@
 package it.unicam.cs.mpgc.rpg126615.model.entita;
 
-import it.unicam.cs.mpgc.rpg126615.model.carta.FabbricaCarte;
+import it.unicam.cs.mpgc.rpg126615.model.carta.CreatoreMazzo;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Mano;
 import it.unicam.cs.mpgc.rpg126615.model.carta.Mazzo;
 import it.unicam.cs.mpgc.rpg126615.model.progressione.GestoreLivello;
@@ -21,9 +21,9 @@ public class Giocatore extends EntitaAstratta implements Livellabile {
     private int difesaPermanente;
     private int pianiFeritaRimanenti;
 
-    public Giocatore(String nome, int hpMax, int attaccoBase) {
+    public Giocatore(String nome, int hpMax, int attaccoBase, CreatoreMazzo creatoreMazzo) {
         super(nome, hpMax, attaccoBase);
-        this.mazzo = new Mazzo(new FabbricaCarte().creaMazzoIniziale(this));
+        this.mazzo = new Mazzo(creatoreMazzo.creaMazzoIniziale(this));
         this.puntiAzione = PA_PER_TURNO;
     }
 

@@ -20,18 +20,12 @@ public class ContestoBattaglia implements ContestoCarta {
 
     @Override
     public void applicaBonusGiocatore(StatisticaBersaglio statistica, int valore) {
-        switch (statistica) {
-            case ATTACCO -> giocatore.modificaAttacco(valore);
-            case SCUDO -> giocatore.modificaDifesa(valore);
-        }
+        statistica.modifica(giocatore, valore);
     }
 
     @Override
     public void applicaMalusNemico(StatisticaBersaglio statistica, int valore) {
-        switch (statistica) {
-            case ATTACCO -> nemico.modificaAttacco(-valore);
-            case SCUDO -> nemico.modificaDifesa(-valore);
-        }
+        statistica.modifica(nemico, -valore);
     }
 
     @Override

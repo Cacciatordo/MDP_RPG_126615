@@ -1,14 +1,15 @@
 package it.unicam.cs.mpgc.rpg126615.model.gioco;
 
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
+import it.unicam.cs.mpgc.rpg126615.model.carta.FabbricaCarte;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
+import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiPiano;
+import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiSalvataggio;
 import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
-import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiPiano;
-import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiSalvataggio;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,8 @@ public class Partita {
                     + " e " + PIANI_MASSIMI + ": " + totalePiani);
         }
         String nome = (nomeEroe == null || nomeEroe.isBlank()) ? NOME_PREDEFINITO : nomeEroe.trim();
-        Giocatore nuovoGiocatore = new Giocatore(nome, HP_INIZIALI_GIOCATORE, ATTACCO_INIZIALE_GIOCATORE);
+        Giocatore nuovoGiocatore = new Giocatore(nome, HP_INIZIALI_GIOCATORE, ATTACCO_INIZIALE_GIOCATORE,
+                new FabbricaCarte());
         Torre nuovaTorre = new Torre(new GeneratorePiani(new Random(semeTorre)).generaPiani(totalePiani));
         return new Partita(nuovoGiocatore, nuovaTorre, semeTorre);
     }

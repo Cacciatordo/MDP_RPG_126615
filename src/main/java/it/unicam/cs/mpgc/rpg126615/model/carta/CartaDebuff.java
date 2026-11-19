@@ -11,10 +11,7 @@ public class CartaDebuff extends CartaStatistica {
 
     @Override
     public TipoCarta getTipo() {
-        return switch (getBersaglio()) {
-            case ATTACCO -> TipoCarta.INDEBOLIMENTO_ATTACCO;
-            case SCUDO -> TipoCarta.INDEBOLIMENTO_DIFESA;
-        };
+        return getBersaglio().getTipoIndebolimento();
     }
 
     @Override
