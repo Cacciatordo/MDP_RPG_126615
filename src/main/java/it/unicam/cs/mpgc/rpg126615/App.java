@@ -1,19 +1,18 @@
 package it.unicam.cs.mpgc.rpg126615;
 
-import it.unicam.cs.mpgc.rpg126615.gioco.Partita;
-import it.unicam.cs.mpgc.rpg126615.persistenza.ArchivioSalvataggiFile;
-import it.unicam.cs.mpgc.rpg126615.persistenza.DatiSalvataggio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.DimensioniFinestra;
-import it.unicam.cs.mpgc.rpg126615.ui.view.battaglia.VistaBattaglia;
-import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.ArrivoNelCorridoio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.AzioniCorridoio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.DialoghiSalvataggio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.IngressoNelCorridoio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.corridoio.VistaCorridoio;
-import it.unicam.cs.mpgc.rpg126615.ui.view.finale.RiepilogoFinale;
-import it.unicam.cs.mpgc.rpg126615.ui.view.finale.VistaFineGioco;
-import it.unicam.cs.mpgc.rpg126615.ui.view.menu.AzioniMenu;
-import it.unicam.cs.mpgc.rpg126615.ui.view.menu.VistaIniziale;
+import it.unicam.cs.mpgc.rpg126615.controller.ControllerBattaglia;
+import it.unicam.cs.mpgc.rpg126615.controller.ControllerCorridoio;
+import it.unicam.cs.mpgc.rpg126615.controller.ControllerMenu;
+import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
+import it.unicam.cs.mpgc.rpg126615.model.persistenza.ArchivioSalvataggiFile;
+import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
+import it.unicam.cs.mpgc.rpg126615.view.corridoio.ArrivoNelCorridoio;
+import it.unicam.cs.mpgc.rpg126615.view.corridoio.AzioniCorridoio;
+import it.unicam.cs.mpgc.rpg126615.view.corridoio.DialoghiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.view.corridoio.IngressoNelCorridoio;
+import it.unicam.cs.mpgc.rpg126615.view.finale.RiepilogoFinale;
+import it.unicam.cs.mpgc.rpg126615.view.finale.VistaFineGioco;
 import javafx.application.Application;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -46,11 +45,10 @@ public class App extends Application {
     }
 
     private void mostraMenu() {
-        AzioniMenu azioni = new AzioniMenu(
+        ControllerMenu controller = new ControllerMenu(DIMENSIONI_FINESTRA, this.dialoghi,
                 (nome, piani) -> iniziaNuovaPartita(nome, piani),
-                () -> this.dialoghi.scegliDaCaricare().ifPresent(dati -> caricaPartita(dati)));
-        VistaIniziale vista = new VistaIniziale(DIMENSIONI_FINESTRA, azioni);
-        this.finestra.setScene(vista.getScena());
+                dati -> caricaPartita(dati));
+        this.finestra.setScene(controller.getScena());
     }
 
     private void iniziaNuovaPartita(String nomeEroe, int piani) {
@@ -92,16 +90,16 @@ public class App extends Application {
                 () -> vaiAlPianoPrecedente(),
                 () -> tornaAlMenu(),
                 dati -> caricaPartita(dati));
-        VistaCorridoio vista = new VistaCorridoio(DIMENSIONI_FINESTRA, this.partita, this.dialoghi, azioni,
-                new IngressoNelCorridoio(arrivo, this.posizioneEroe));
-        this.finestra.setScene(vista.getScena());
+        ControllerCorridoio controller = new ControllerCorridoio(DIMENSIONI_FINESTRA, this.partita, this.dialoghi,
+                azioni, new IngressoNelCorridoio(arrivo, this.posizioneEroe));
+        this.finestra.setScene(controller.getScena());
     }
 
     private void mostraBattaglia(double posizione) {
         this.posizioneEroe = posizione;
-        VistaBattaglia vista = new VistaBattaglia(DIMENSIONI_FINESTRA, this.partita,
+        ControllerBattaglia controller = new ControllerBattaglia(DIMENSIONI_FINESTRA, this.partita,
                 () -> tornaDallaBattaglia());
-        this.finestra.setScene(vista.getScena());
+        this.finestra.setScene(controller.getScena());
     }
 
     private void tornaDallaBattaglia() {
