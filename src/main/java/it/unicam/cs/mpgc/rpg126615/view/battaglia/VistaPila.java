@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126615.view.battaglia;
 
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Pos;
@@ -10,8 +11,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 public class VistaPila {
@@ -30,8 +29,8 @@ public class VistaPila {
     private static final int DIMENSIONE_NUMERO = 16;
     private static final int DIMENSIONE_DETTAGLIO = 8;
 
-    private final Label numero = creaEtichetta(DIMENSIONE_NUMERO, Tema.TESTO);
-    private final Label dettaglio = creaEtichetta(DIMENSIONE_DETTAGLIO, Tema.TESTO_SECONDARIO);
+    private final Label numero = Componenti.etichetta(DIMENSIONE_NUMERO, Tema.TESTO);
+    private final Label dettaglio = Componenti.etichetta(DIMENSIONE_DETTAGLIO, Tema.TESTO_SECONDARIO);
     private final VBox fronte = new VBox(2);
     private final Region primoStrato = creaStrato(SCARTO_STRATO);
     private final Region secondoStrato = creaStrato(2 * SCARTO_STRATO);
@@ -41,7 +40,7 @@ public class VistaPila {
     private int numeroPrecedente = -1;
 
     public VistaPila(String titolo) {
-        Label etichettaTitolo = creaEtichetta(DIMENSIONE_TITOLO, Tema.BORDO);
+        Label etichettaTitolo = Componenti.etichetta(DIMENSIONE_TITOLO, Tema.BORDO);
         etichettaTitolo.setText(titolo);
         this.dettaglio.setTextOverrun(OverrunStyle.ELLIPSIS);
         this.dettaglio.setAlignment(Pos.CENTER);
@@ -49,11 +48,11 @@ public class VistaPila {
 
         this.fronte.getChildren().addAll(etichettaTitolo, this.numero, this.dettaglio);
         this.fronte.setAlignment(Pos.CENTER);
-        blocca(this.fronte, LARGHEZZA_FRONTE, ALTEZZA_FRONTE);
+        Componenti.bloccaDimensione(this.fronte, LARGHEZZA_FRONTE, ALTEZZA_FRONTE);
 
         this.contenitore = new StackPane(this.secondoStrato, this.primoStrato, this.fronte);
         this.contenitore.setAlignment(Pos.BOTTOM_LEFT);
-        blocca(this.contenitore, LARGHEZZA, ALTEZZA);
+        Componenti.bloccaDimensione(this.contenitore, LARGHEZZA, ALTEZZA);
         this.suggerimento.setShowDelay(Duration.millis(50));
         Tooltip.install(this.contenitore, this.suggerimento);
     }
@@ -85,27 +84,14 @@ public class VistaPila {
         return transizione;
     }
 
-    private static Label creaEtichetta(int dimensione, String colore) {
-        Label etichetta = new Label();
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        return etichetta;
-    }
-
     private static Region creaStrato(double scarto) {
         Region strato = new Region();
-        blocca(strato, LARGHEZZA_FRONTE, ALTEZZA_FRONTE);
+        Componenti.bloccaDimensione(strato, LARGHEZZA_FRONTE, ALTEZZA_FRONTE);
         strato.setStyle("-fx-background-color: " + Tema.PANNELLO + "; -fx-border-color: " + Tema.BORDO
                 + "; -fx-border-width: 2;");
         strato.setTranslateX(scarto);
         strato.setTranslateY(-scarto);
         return strato;
-    }
-
-    private static void blocca(Region regione, double larghezza, double altezza) {
-        regione.setMinSize(larghezza, altezza);
-        regione.setPrefSize(larghezza, altezza);
-        regione.setMaxSize(larghezza, altezza);
     }
 
     private static String stileFronte(String colore) {

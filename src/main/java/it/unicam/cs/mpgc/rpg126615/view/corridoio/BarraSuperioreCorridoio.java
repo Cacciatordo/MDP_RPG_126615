@@ -1,12 +1,12 @@
 package it.unicam.cs.mpgc.rpg126615.view.corridoio;
 
-import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -15,7 +15,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
@@ -25,12 +24,6 @@ public class BarraSuperioreCorridoio {
 
     private static final String GUIDA = "Usa [A / D] oppure le frecce per camminare nel corridoio";
     private static final String COLORE_HP_BASSI = Tema.ROSSO;
-    private static final String COLORE_XP = "#a855f7";
-    private static final String COLORE_DIFESA = "#f97316";
-    private static final String COLORE_AVVISO = "#4a1d6e";
-    private static final String COLORE_AVVISO_CURE_BLOCCATE = "#7f1d1d";
-    private static final int LIVELLI_EXTRA_SENZA_CURE = 4;
-    private static final String PANNELLO_SOPRA = "#3d2a1e";
     private static final double SOGLIA_HP_ALTI = 0.5;
     private static final double SOGLIA_HP_BASSI = 0.25;
     private static final double LARGHEZZA_BARRA_HP = 80;
@@ -43,27 +36,27 @@ public class BarraSuperioreCorridoio {
     private static final int DIMENSIONE_MESSAGGIO = 9;
     private static final int DIMENSIONE_BOTTONE = 9;
     private static final int DIMENSIONE_AVVISO = 10;
-    private static final String STILE_FERITA = "-fx-background-color: " + COLORE_AVVISO_CURE_BLOCCATE + "; "
+    private static final String STILE_FERITA = "-fx-background-color: " + Tema.AVVISO_GRAVE + "; "
             + "-fx-padding: 2 8; -fx-border-color: " + Tema.ROSSO + "; -fx-border-width: 2;";
     private static final String STILE_PANNELLO_STATO = "-fx-background-color: " + Tema.PANNELLO + "; "
             + "-fx-border-color: " + Tema.BORDO + "; -fx-border-width: 3;";
 
-    private final Label etichettaTitolo = creaEtichetta(DIMENSIONE_TITOLO, Tema.ORO);
-    private final Label etichettaEroe = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
+    private final Label etichettaTitolo = Componenti.etichetta(DIMENSIONE_TITOLO, Tema.ORO);
+    private final Label etichettaEroe = Componenti.etichetta(DIMENSIONE_STATO, Tema.TESTO);
     private final ProgressBar barraHp = creaBarra(LARGHEZZA_BARRA_HP);
-    private final Label etichettaHp = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
+    private final Label etichettaHp = Componenti.etichetta(DIMENSIONE_STATO, Tema.TESTO);
     private final ProgressBar barraXp = creaBarra(LARGHEZZA_BARRA_XP);
-    private final Label etichettaXp = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
-    private final Label etichettaAttacco = creaEtichetta(DIMENSIONE_STATO, Tema.ORO);
-    private final Label etichettaDifesa = creaEtichetta(DIMENSIONE_STATO, COLORE_DIFESA);
-    private final Label etichettaFerita = creaEtichetta(DIMENSIONE_STATO, Tema.TESTO);
+    private final Label etichettaXp = Componenti.etichetta(DIMENSIONE_STATO, Tema.TESTO);
+    private final Label etichettaAttacco = Componenti.etichetta(DIMENSIONE_STATO, Tema.ORO);
+    private final Label etichettaDifesa = Componenti.etichetta(DIMENSIONE_STATO, Tema.DIFESA);
+    private final Label etichettaFerita = Componenti.etichetta(DIMENSIONE_STATO, Tema.TESTO);
     private final Tooltip suggerimentoFerita = new Tooltip();
-    private final Label etichettaMessaggio = creaEtichetta(DIMENSIONE_MESSAGGIO, Tema.TESTO_SECONDARIO);
-    private final Label etichettaAvviso = creaEtichetta(DIMENSIONE_AVVISO, Tema.ORO);
+    private final Label etichettaMessaggio = Componenti.etichetta(DIMENSIONE_MESSAGGIO, Tema.TESTO_SECONDARIO);
+    private final Label etichettaAvviso = Componenti.etichetta(DIMENSIONE_AVVISO, Tema.ORO);
     private final VBox contenitore;
 
     public BarraSuperioreCorridoio(Runnable suSalva, Runnable suCarica, Runnable suMenu) {
-        this.barraXp.setStyle(stileBarra(COLORE_XP));
+        this.barraXp.setStyle(stileBarra(Tema.ESPERIENZA));
         preparaEtichettaFerita();
         preparaEtichettaMessaggio();
         preparaEtichettaAvviso();
@@ -95,7 +88,7 @@ public class BarraSuperioreCorridoio {
         aggiornaFerita(giocatore);
 
         if (tipo == TipoPiano.BOSS || tipo == TipoPiano.BOSS_FINALE) {
-            mostraAvvisoBoss(livelloConsigliato(numero), giocatore.isGuarigioneBloccata());
+            mostraAvvisoBoss(partita.getLivelloConsigliato(), giocatore.isGuarigioneBloccata());
         } else {
             this.etichettaAvviso.setVisible(false);
         }
@@ -143,7 +136,7 @@ public class BarraSuperioreCorridoio {
     private HBox creaPannelloStato() {
         HBox pannelloStato = new HBox(10, this.etichettaEroe,
                 creaBlocco("HP", Tema.VERDE, this.barraHp, this.etichettaHp),
-                creaBlocco("XP", COLORE_XP, this.barraXp, this.etichettaXp),
+                creaBlocco("XP", Tema.ESPERIENZA, this.barraXp, this.etichettaXp),
                 this.etichettaAttacco, this.etichettaDifesa, this.etichettaFerita);
         pannelloStato.setAlignment(Pos.CENTER);
         pannelloStato.setPadding(new Insets(6, 14, 6, 14));
@@ -175,19 +168,14 @@ public class BarraSuperioreCorridoio {
     private void mostraAvvisoBoss(int livello, boolean cureBloccate) {
         if (cureBloccate) {
             this.etichettaAvviso.setText("⚠ ATTENZIONE PIANO BOSS! 🩸 CURE BLOCCATE! Livello consigliato: Liv. "
-                    + (livello + LIVELLI_EXTRA_SENZA_CURE) + " (Pericolo Estremo)");
+                    + livello + " (Pericolo Estremo)");
         } else {
             this.etichettaAvviso.setText("⚠ ATTENZIONE: PIANO BOSS! Livello consigliato: Liv. " + livello);
         }
-        String colore = cureBloccate ? COLORE_AVVISO_CURE_BLOCCATE : COLORE_AVVISO;
+        String colore = cureBloccate ? Tema.AVVISO_GRAVE : Tema.AVVISO;
         this.etichettaAvviso.setStyle("-fx-background-color: " + colore + "; -fx-border-color: "
                 + Tema.ROSSO + "; -fx-border-width: 2; -fx-padding: 3 12;");
         this.etichettaAvviso.setVisible(true);
-    }
-
-    private static int livelloConsigliato(int numeroPiano) {
-        double stima = 0.55 * numeroPiano + 0.3 * Math.sqrt(numeroPiano) + 0.2;
-        return Math.max(1, (int) Math.round(stima));
     }
 
     private static String coloreHp(double rapporto) {
@@ -212,7 +200,7 @@ public class BarraSuperioreCorridoio {
     }
 
     private static HBox creaBlocco(String nome, String colore, ProgressBar barra, Label valore) {
-        Label titolo = creaEtichetta(DIMENSIONE_STATO, colore);
+        Label titolo = Componenti.etichetta(DIMENSIONE_STATO, colore);
         titolo.setText(nome);
         HBox blocco = new HBox(6, titolo, barra, valore);
         blocco.setAlignment(Pos.CENTER);
@@ -234,12 +222,10 @@ public class BarraSuperioreCorridoio {
     private static Button creaBottone(String testo, String suggerimento, Runnable azione) {
         Button bottone = new Button(testo);
         bottone.setFont(Font.font(Tema.FONT, DIMENSIONE_BOTTONE));
-        bottone.setStyle(stileBottone(Tema.PANNELLO, Tema.BORDO));
-        bottone.setCursor(Cursor.HAND);
+        Componenti.aggiungiEffettoSopra(bottone,
+                stileBottone(Tema.PANNELLO, Tema.BORDO), stileBottone(Tema.PANNELLO_SOPRA, Tema.ORO));
         bottone.setFocusTraversable(false);
         bottone.setTooltip(new Tooltip(suggerimento));
-        bottone.setOnMouseEntered(evento -> bottone.setStyle(stileBottone(PANNELLO_SOPRA, Tema.ORO)));
-        bottone.setOnMouseExited(evento -> bottone.setStyle(stileBottone(Tema.PANNELLO, Tema.BORDO)));
         bottone.setOnAction(evento -> azione.run());
         return bottone;
     }
@@ -250,10 +236,4 @@ public class BarraSuperioreCorridoio {
                 + "-fx-border-radius: 0; -fx-padding: 4 10;";
     }
 
-    private static Label creaEtichetta(int dimensione, String colore) {
-        Label etichetta = new Label();
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        return etichetta;
-    }
 }

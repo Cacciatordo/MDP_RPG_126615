@@ -56,10 +56,6 @@ public class Mazzo {
         return pilaPesca.size();
     }
 
-    public int getDimensioneScarti() {
-        return pilaScarti.size();
-    }
-
     private void ricomponiPilaPesca() {
         pilaPesca.clear();
         pilaScarti.clear();

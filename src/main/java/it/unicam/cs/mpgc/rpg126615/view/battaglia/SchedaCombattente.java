@@ -2,15 +2,13 @@ package it.unicam.cs.mpgc.rpg126615.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 
 import java.util.function.Supplier;
 
@@ -27,10 +25,10 @@ public class SchedaCombattente {
     private final Combattente combattente;
     private final Supplier<String> fornitoreNome;
     private final EtichetteStatistiche etichette;
-    private final Label etichettaNome = creaEtichetta(DIMENSIONE_NOME, Tema.TESTO);
+    private final Label etichettaNome = creaEtichettaCentrata(DIMENSIONE_NOME, Tema.TESTO);
     private final ProgressBar barraHp = new ProgressBar(1.0);
-    private final Label etichettaHp = creaEtichetta(DIMENSIONE_HP, Tema.TESTO);
-    private final Label etichettaStatistiche = creaEtichetta(DIMENSIONE_STATISTICHE, Tema.ORO);
+    private final Label etichettaHp = creaEtichettaCentrata(DIMENSIONE_HP, Tema.TESTO);
+    private final Label etichettaStatistiche = creaEtichettaCentrata(DIMENSIONE_STATISTICHE, Tema.ORO);
     private final VBox contenitore;
 
     private SchedaCombattente(Combattente combattente, Supplier<String> fornitoreNome,
@@ -78,14 +76,9 @@ public class SchedaCombattente {
                 + "  |  🛡 " + this.etichette.getDifesa() + ": " + this.combattente.getDifesa();
     }
 
-    private static Label creaEtichetta(int dimensione, String colore) {
-        Label etichetta = new Label();
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        etichetta.setWrapText(true);
-        etichetta.setTextAlignment(TextAlignment.CENTER);
-        etichetta.setAlignment(Pos.CENTER);
-        etichetta.setMaxWidth(LARGHEZZA);
-        return etichetta;
+
+    private static Label creaEtichettaCentrata(int dimensione, String colore) {
+        return Componenti.etichettaCentrata("", dimensione, colore, LARGHEZZA);
     }
+
 }

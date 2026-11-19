@@ -11,17 +11,6 @@ public class Mano {
 
     private final List<Carta> carte = new ArrayList<>();
 
-    public boolean aggiungiCarta(Carta carta) {
-        if (carta == null) {
-            throw new IllegalArgumentException("La carta non può essere nulla");
-        }
-        if (isPiena()) {
-            return false;
-        }
-        carte.add(carta);
-        return true;
-    }
-
     public boolean rimuoviCarta(Carta carta) {
         if (carta == null) {
             throw new IllegalArgumentException("La carta da rimuovere non può essere nulla");

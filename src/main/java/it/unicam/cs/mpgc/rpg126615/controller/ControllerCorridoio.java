@@ -15,8 +15,6 @@ import java.util.List;
 
 public class ControllerCorridoio {
 
-    private static final double MARGINE_USCITA_DESTRA = 120;
-    private static final double LIMITE_SCALA_DISCESA = 44;
     private static final RichiestaConferma RICHIESTA_CASSA = RichiestaConferma.standard("Antica cassa",
             "Vuoi aprirla? Potresti trovare un premio... o una trappola!");
     private static final RichiestaConferma RICHIESTA_FONTANA = new RichiestaConferma("Fontana di lava",
@@ -29,7 +27,6 @@ public class ControllerCorridoio {
     private final Partita partita;
     private final DialoghiSalvataggio dialoghi;
     private final AzioniCorridoio azioni;
-    private final double larghezza;
     private final VistaCorridoio vista;
     private final InterazioneConPiano interazioneCassa;
     private final InterazioneConPiano interazioneFontana;
@@ -43,12 +40,11 @@ public class ControllerCorridoio {
         this.partita = partita;
         this.dialoghi = dialoghi;
         this.azioni = azioni;
-        this.larghezza = dimensioni.larghezza();
         this.vista = new VistaCorridoio(dimensioni, partita, new EventiCorridoio(
-                () -> controllaInterazioni(),
-                () -> riaffronta(),
-                () -> salva(),
-                () -> carica(),
+                this::controllaInterazioni,
+                this::riaffronta,
+                this::salva,
+                this::carica,
                 azioni.suMenu()), ingresso);
         double centro = this.vista.getCentroEntita();
         this.interazioneCassa = new InterazioneConPiano(partita, centro, PIANI_CON_CASSA);
@@ -117,12 +113,12 @@ public class ControllerCorridoio {
     private boolean isUscitaRaggiunta() {
         return this.partita.haProssimoPiano()
                 && this.partita.isPassaggioLibero()
-                && this.vista.getPosizioneEroe() >= this.larghezza - MARGINE_USCITA_DESTRA;
+                && this.vista.isEroeAllUscita();
     }
 
     private boolean isScalaDiscesaRaggiunta() {
-        return this.partita.getNumeroPianoCorrente() > 1
-                && this.vista.getPosizioneEroe() <= LIMITE_SCALA_DISCESA;
+        return this.partita.haPianoPrecedente()
+                && this.vista.isEroeAllaScala();
     }
 
     private void usa(InterazioneConPiano interazione) {
@@ -130,10 +126,10 @@ public class ControllerCorridoio {
     }
 
     private void salva() {
-        this.dialoghi.salva(this.partita).ifPresent(messaggio -> this.vista.mostraMessaggio(messaggio));
+        this.dialoghi.salva(this.partita).ifPresent(this.vista::mostraMessaggio);
     }
 
     private void carica() {
-        this.dialoghi.scegliDaCaricare().ifPresent(dati -> this.azioni.suPartitaCaricata().accept(dati));
+        this.dialoghi.scegliDaCaricare().ifPresent(this.azioni.suPartitaCaricata());
     }
 }

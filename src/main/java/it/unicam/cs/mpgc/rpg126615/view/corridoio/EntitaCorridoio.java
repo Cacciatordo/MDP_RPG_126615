@@ -2,11 +2,11 @@ package it.unicam.cs.mpgc.rpg126615.view.corridoio;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
+import it.unicam.cs.mpgc.rpg126615.view.AspettoAvversario;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpritePersonaggio;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
-import it.unicam.cs.mpgc.rpg126615.view.AspettoAvversario;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -23,10 +23,12 @@ public class EntitaCorridoio {
 
     private static final double VERSO_SINISTRA = -1;
     private static final String STILE_SUGGERIMENTO = "-fx-font-family: '" + Tema.FONT + "'; -fx-font-size: 9px;";
-    private static final String DESCRIZIONE_CASSA_CHIUSA = "Antica cassa: aprila per trovare un premio... o una trappola!";
+    private static final String DESCRIZIONE_CASSA_CHIUSA =
+            "Antica cassa: aprila per trovare un premio... o una trappola!";
     private static final String DESCRIZIONE_CASSA_APERTA = "La cassa è stata aperta.";
     private static final String DESCRIZIONE_FONTANA_ACCESA = "Fontana di lava: riposa e recupera i tuoi HP!";
-    private static final String DESCRIZIONE_FONTANA_SPENTA = "La lava si è raffreddata: la fontana non ha più effetto.";
+    private static final String DESCRIZIONE_FONTANA_SPENTA =
+            "La lava si è raffreddata: la fontana non ha più effetto.";
 
     private final Pane livello = new Pane();
     private final double centroOrizzontale;
@@ -75,7 +77,8 @@ public class EntitaCorridoio {
         Nemico nemico = piano.getNemico();
         AspettoAvversario aspetto = AspettoAvversario.di(nemico);
         SpritePersonaggio personaggio = aspetto.personaggioDelPiano(piano.getNumero());
-        SpriteAnimato sprite = new SpriteAnimato(PixelArt.PERSONAGGI, personaggio.getPrefisso(), personaggio.getScala());
+        SpriteAnimato sprite = new SpriteAnimato(
+                PixelArt.PERSONAGGI, personaggio.getPrefisso(), personaggio.getScala());
         sprite.setScaleX(VERSO_SINISTRA);
         this.animazioni.add(sprite);
 

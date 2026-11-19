@@ -1,17 +1,14 @@
 package it.unicam.cs.mpgc.rpg126615.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 public class BarraComandiBattaglia {
 
@@ -28,28 +25,26 @@ public class BarraComandiBattaglia {
             + "-fx-border-color: " + Tema.ORO + "; -fx-border-width: 2;";
 
     private final Giocatore giocatore;
-    private final Label etichettaPa = creaEtichetta(DIMENSIONE_PA, Tema.ORO);
+    private final Label etichettaPa = Componenti.etichetta(DIMENSIONE_PA, Tema.ORO);
     private final Button bottoneFineTurno = new Button("⏭ Termina Turno");
     private final HBox contenitore;
 
     public BarraComandiBattaglia(double larghezza, Giocatore giocatore, Runnable suFineTurno) {
         this.giocatore = giocatore;
 
-        Label titoloPa = creaEtichetta(DIMENSIONE_TITOLO_PA, Tema.TESTO);
+        Label titoloPa = Componenti.etichetta(DIMENSIONE_TITOLO_PA, Tema.TESTO);
         titoloPa.setText("PUNTI AZIONE");
         HBox scatolaPa = new HBox(SPAZIO_PA, titoloPa, this.etichettaPa);
         scatolaPa.setAlignment(Pos.CENTER);
         scatolaPa.setStyle(STILE_SCATOLA_PA);
-        blocca(scatolaPa);
+        Componenti.bloccaDimensione(scatolaPa, LARGHEZZA_COMANDO, ALTEZZA);
 
-        this.bottoneFineTurno.setStyle(stileBottone(Tema.PANNELLO, Tema.BORDO));
-        this.bottoneFineTurno.setCursor(Cursor.HAND);
+        Componenti.aggiungiEffettoSopra(this.bottoneFineTurno,
+                stileBottone(Tema.PANNELLO, Tema.BORDO), stileBottone(PANNELLO_SOPRA, Tema.ORO));
         this.bottoneFineTurno.setFocusTraversable(false);
         this.bottoneFineTurno.setTooltip(new Tooltip("Passa il turno: tocca al nemico."));
-        this.bottoneFineTurno.setOnMouseEntered(e -> this.bottoneFineTurno.setStyle(stileBottone(PANNELLO_SOPRA, Tema.ORO)));
-        this.bottoneFineTurno.setOnMouseExited(e -> this.bottoneFineTurno.setStyle(stileBottone(Tema.PANNELLO, Tema.BORDO)));
         this.bottoneFineTurno.setOnAction(e -> suFineTurno.run());
-        blocca(this.bottoneFineTurno);
+        Componenti.bloccaDimensione(this.bottoneFineTurno, LARGHEZZA_COMANDO, ALTEZZA);
 
         this.contenitore = new HBox(SPAZIO, scatolaPa, this.bottoneFineTurno);
         this.contenitore.setAlignment(Pos.CENTER);
@@ -69,12 +64,6 @@ public class BarraComandiBattaglia {
         this.bottoneFineTurno.setDisable(!abilitati);
     }
 
-    private static void blocca(Region regione) {
-        regione.setMinSize(LARGHEZZA_COMANDO, ALTEZZA);
-        regione.setPrefSize(LARGHEZZA_COMANDO, ALTEZZA);
-        regione.setMaxSize(LARGHEZZA_COMANDO, ALTEZZA);
-    }
-
     private static String stileBottone(String sfondo, String bordo) {
         return "-fx-background-color: " + sfondo + "; -fx-text-fill: " + Tema.TESTO + "; "
                 + "-fx-font-family: '" + Tema.FONT + "'; -fx-font-size: " + DIMENSIONE_BOTTONE + "px; "
@@ -82,10 +71,4 @@ public class BarraComandiBattaglia {
                 + "-fx-background-radius: 0; -fx-border-radius: 0;";
     }
 
-    private static Label creaEtichetta(int dimensione, String colore) {
-        Label etichetta = new Label();
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        return etichetta;
-    }
 }

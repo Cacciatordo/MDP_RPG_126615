@@ -1,18 +1,17 @@
 package it.unicam.cs.mpgc.rpg126615.model.gioco;
 
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
+import it.unicam.cs.mpgc.rpg126615.model.carta.CreatoreMazzo;
 import it.unicam.cs.mpgc.rpg126615.model.carta.FabbricaCarte;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Nemico;
-import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiPiano;
 import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.model.persistenza.MappaturaPiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.GeneratorePiani;
 import it.unicam.cs.mpgc.rpg126615.model.torre.PianoTorre;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
 import it.unicam.cs.mpgc.rpg126615.model.torre.Torre;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -22,10 +21,10 @@ public class Partita {
     public static final int PIANI_MINIMI = 10;
     public static final int PIANI_MASSIMI = 999;
     public static final int PIANI_PREDEFINITI = 50;
-    public static final int PENALITA_XP_SCONFITTA = 25;
 
     private static final String NOME_PREDEFINITO = "Eroe";
     private static final int HP_INIZIALI_GIOCATORE = 100;
+    private static final int LIVELLI_EXTRA_SENZA_CURE = 4;
     private static final int ATTACCO_INIZIALE_GIOCATORE = 10;
 
     private final Giocatore giocatore;
@@ -57,15 +56,25 @@ public class Partita {
     }
 
     public static Partita nuova(String nomeEroe, int totalePiani, long semeTorre) {
+        return nuova(nomeEroe, totalePiani, semeTorre, new FabbricaCarte());
+    }
+
+    public static Partita nuova(String nomeEroe, int totalePiani, long semeTorre, CreatoreMazzo creatoreMazzo) {
         if (!isNumeroPianiValido(totalePiani)) {
             throw new IllegalArgumentException("Il numero di piani deve essere tra " + PIANI_MINIMI
                     + " e " + PIANI_MASSIMI + ": " + totalePiani);
         }
         String nome = (nomeEroe == null || nomeEroe.isBlank()) ? NOME_PREDEFINITO : nomeEroe.trim();
         Giocatore nuovoGiocatore = new Giocatore(nome, HP_INIZIALI_GIOCATORE, ATTACCO_INIZIALE_GIOCATORE,
-                new FabbricaCarte());
+                creatoreMazzo);
         Torre nuovaTorre = new Torre(new GeneratorePiani(new Random(semeTorre)).generaPiani(totalePiani));
         return new Partita(nuovoGiocatore, nuovaTorre, semeTorre);
+    }
+
+    public static Partita daSalvataggio(DatiSalvataggio dati) {
+        Partita partita = nuova(dati.giocatore().nome(), dati.piani().size(), dati.semeTorre());
+        partita.ripristina(dati);
+        return partita;
     }
 
     public Giocatore getGiocatore() {
@@ -88,8 +97,21 @@ public class Partita {
         return Optional.ofNullable(battaglia);
     }
 
+    public int getLivelloConsigliato() {
+        int livello = Torre.getLivelloConsigliato(numeroPianoCorrente);
+        return giocatore.isGuarigioneBloccata() ? livello + LIVELLI_EXTRA_SENZA_CURE : livello;
+    }
+
     public boolean haProssimoPiano() {
         return numeroPianoCorrente < torre.getNumeroPiani();
+    }
+
+    public boolean haPianoPrecedente() {
+        return numeroPianoCorrente > 1;
+    }
+
+    public boolean isTorreCompletata() {
+        return isPianoSuperato() && !haProssimoPiano();
     }
 
     public boolean isPianoSuperato() {
@@ -98,10 +120,6 @@ public class Partita {
 
     public boolean isPassaggioLibero() {
         return isPianoSuperato() || getPianoCorrente().getTipo() == TipoPiano.RIPOSO;
-    }
-
-    public boolean isGiocatoreSconfitto() {
-        return !giocatore.isVivo();
     }
 
     public String entraNelPianoCorrente() {
@@ -122,7 +140,7 @@ public class Partita {
     }
 
     public boolean tornaAlPianoPrecedente() {
-        if (numeroPianoCorrente <= 1) {
+        if (!haPianoPrecedente()) {
             return false;
         }
         numeroPianoCorrente--;
@@ -147,56 +165,27 @@ public class Partita {
         }
         PianoTorre pianoDellaSconfitta = getPianoCorrente();
         if (pianoDellaSconfitta.haNemico()) {
-            impostaStatoNemico(pianoDellaSconfitta.getNemico(), riaffrontoInCorso);
+            pianoDellaSconfitta.getNemico().impostaSconfitto(riaffrontoInCorso);
         }
-        giocatore.perdiEsperienza(PENALITA_XP_SCONFITTA);
-        giocatore.cura(giocatore.getHpMax());
+        giocatore.recuperaDopoSconfitta();
         numeroPianoCorrente = trovaPianoDiRipartenza();
         preparaPianoCorrente();
     }
 
     public DatiSalvataggio creaDatiSalvataggio() {
-        List<DatiPiano> datiPiani = new ArrayList<>();
-        for (int numero = 1; numero <= torre.getNumeroPiani(); numero++) {
-            PianoTorre piano = torre.getPiano(numero);
-            String informazione = piano.haNemico() ? piano.getNemico().getNome() : "";
-            datiPiani.add(new DatiPiano(piano.getTipo(), isPianoSuperato(piano), informazione));
-        }
         return new DatiSalvataggio(numeroPianoCorrente, pianoMassimoRaggiunto, semeTorre,
-                giocatore.getStato(), datiPiani);
+                giocatore.getStato(), MappaturaPiani.creaDati(torre));
     }
 
     public void ripristina(DatiSalvataggio dati) {
-        if (!corrispondeAllaTorre(dati.piani())) {
+        if (!MappaturaPiani.corrisponde(torre, dati.piani())) {
             throw new IllegalArgumentException("Il salvataggio non corrisponde alla torre attuale");
         }
         giocatore.applicaStato(dati.giocatore());
-        for (int indice = 0; indice < dati.piani().size(); indice++) {
-            ripristinaPiano(torre.getPiano(indice + 1), dati.piani().get(indice).completato());
-        }
+        MappaturaPiani.ripristina(torre, dati.piani());
         numeroPianoCorrente = dati.pianoCorrente();
         pianoMassimoRaggiunto = dati.pianoMassimoRaggiunto();
         preparaPianoCorrente();
-    }
-
-    private static boolean isPianoSuperato(PianoTorre piano) {
-        return piano.isCompletato() || (piano.haNemico() && !piano.getNemico().isVivo());
-    }
-
-    private static void ripristinaPiano(PianoTorre piano, boolean superato) {
-        if (piano.haNemico()) {
-            impostaStatoNemico(piano.getNemico(), superato);
-        } else if (superato) {
-            piano.ripristinaCompletato();
-        }
-    }
-
-    private static void impostaStatoNemico(Nemico nemico, boolean sconfitto) {
-        if (sconfitto) {
-            nemico.subisciDanno(nemico.getHp());
-        } else {
-            nemico.cura(nemico.getHpMax());
-        }
     }
 
     private int trovaPianoDiRipartenza() {
@@ -206,18 +195,6 @@ public class Partita {
             }
         }
         return 1;
-    }
-
-    private boolean corrispondeAllaTorre(List<DatiPiano> datiPiani) {
-        if (datiPiani.size() != torre.getNumeroPiani()) {
-            return false;
-        }
-        for (int indice = 0; indice < datiPiani.size(); indice++) {
-            if (datiPiani.get(indice).tipo() != torre.getPiano(indice + 1).getTipo()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void preparaPianoCorrente() {

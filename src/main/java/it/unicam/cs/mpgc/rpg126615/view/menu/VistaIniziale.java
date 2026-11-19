@@ -1,15 +1,15 @@
 package it.unicam.cs.mpgc.rpg126615.view.menu;
 
 import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
+import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpriteAnimato;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpritePersonaggio;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
-import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -19,13 +19,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 
 public class VistaIniziale {
 
-    private static final String SPRITE_EROE = "knight_m_idle_anim";
     private static final int SCALA_EROE = 3;
 
     private static final double LARGHEZZA_RIQUADRO = 400;
@@ -44,7 +41,8 @@ public class VistaIniziale {
     private static final String PANNELLO_SOPRA = "#3d2a1e";
     private static final String TESTO_SPENTO = "#6b6058";
 
-    private static final String TESTO_SOTTOTITOLO = "Scala i piani, affronta i boss e sconfiggi i pericoli della torre";
+    private static final String TESTO_SOTTOTITOLO =
+            "Scala i piani, affronta i boss e sconfiggi i pericoli della torre";
     private static final String TESTO_DESCRIZIONE = "Sali la torre piano dopo piano: combatti mostri con le "
             + "tue carte, apri casse, riposa alle fontane di lava e sconfiggi i boss. "
             + "In cima ti aspetta il Boss della Torre!";
@@ -120,7 +118,7 @@ public class VistaIniziale {
                 creaRiquadroNuovaPartita(nuovaPartita), creaRiquadro(continua));
         colonnaCentrale.setAlignment(Pos.CENTER);
 
-        SpriteAnimato eroe = creaSprite(PixelArt.PERSONAGGI, SPRITE_EROE, SCALA_EROE);
+        SpriteAnimato eroe = creaSprite(PixelArt.PERSONAGGI, PixelArt.EROE_FERMO, SCALA_EROE);
         SpriteAnimato boss = creaSprite(PixelArt.PERSONAGGI,
                 SpritePersonaggio.DEMONE_GIGANTE.getPrefisso(), SpritePersonaggio.DEMONE_GIGANTE.getScala());
         boss.setScaleX(-1);
@@ -141,14 +139,8 @@ public class VistaIniziale {
     }
 
     private static Label creaEtichetta(String testo, String colore) {
-        Label etichetta = new Label(testo);
-        etichetta.setFont(Font.font(Tema.FONT, DIMENSIONE_TESTO));
-        etichetta.setTextFill(Color.web(colore));
-        etichetta.setWrapText(true);
-        etichetta.setTextAlignment(TextAlignment.CENTER);
-        etichetta.setAlignment(Pos.CENTER);
-        etichetta.setMaxWidth(LARGHEZZA_RIQUADRO - 2 * PADDING_RIQUADRO);
-        return etichetta;
+        return Componenti.etichettaCentrata(
+                testo, DIMENSIONE_TESTO, colore, LARGHEZZA_RIQUADRO - 2 * PADDING_RIQUADRO);
     }
 
     private static TextField creaCampo(String suggerimento) {
@@ -173,10 +165,7 @@ public class VistaIniziale {
         Button bottone = new Button(testo);
         String normale = stileBottone(sfondo, coloreTesto, Tema.BORDO);
         String sopra = stileBottone(sfondoSopra, coloreTesto, Tema.ORO);
-        bottone.setStyle(normale);
-        bottone.setCursor(Cursor.HAND);
-        bottone.setOnMouseEntered(evento -> bottone.setStyle(sopra));
-        bottone.setOnMouseExited(evento -> bottone.setStyle(normale));
+        Componenti.aggiungiEffettoSopra(bottone, normale, sopra);
         return bottone;
     }
 

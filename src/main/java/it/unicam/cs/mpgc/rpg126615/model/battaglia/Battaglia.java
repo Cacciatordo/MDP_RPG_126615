@@ -50,6 +50,18 @@ public class Battaglia {
         return attaccoEseguitoNelTurno;
     }
 
+    public boolean isAttaccoBaseGiocabile() {
+        return !isFinita()
+                && !attaccoEseguitoNelTurno
+                && giocatore.getPuntiAzione() >= COSTO_PA_ATTACCO_BASE;
+    }
+
+    public boolean isCartaGiocabile(Carta carta) {
+        return !isFinita()
+                && carta.isGiocabile(giocatore.getMano())
+                && giocatore.getPuntiAzione() >= carta.getCostoPA();
+    }
+
     public String giocaCartaDallaMano(int indiceCarta) {
         controllaBattagliaInCorso();
         List<Carta> carte = giocatore.getMano().getCarte();

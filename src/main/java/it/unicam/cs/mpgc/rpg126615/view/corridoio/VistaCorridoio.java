@@ -2,9 +2,9 @@ package it.unicam.cs.mpgc.rpg126615.view.corridoio;
 
 import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.torre.TipoPiano;
+import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
-import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -22,6 +22,8 @@ public class VistaCorridoio {
     private static final double ALTEZZA_SCENARIO = 460;
     private static final double X_INGRESSO_DA_SOTTO = 80;
     private static final double DISTANZA_INGRESSO_DA_SOPRA = 140;
+    private static final double MARGINE_USCITA_DESTRA = 120;
+    private static final double LIMITE_SCALA_DISCESA = 44;
     private static final double DISTANZA_SFIDA = 90;
     private static final double LARGHEZZA_PULSANTE_SFIDA = 190;
     private static final double SCARTO_PULSANTE_SFIDA = 12;
@@ -29,6 +31,7 @@ public class VistaCorridoio {
     private static final String TESTO_SFIDA_MOSTRO = "⚔ SFIDA MOSTRO";
     private static final String TESTO_SFIDA_BOSS = "⚔ SFIDA BOSS";
 
+    private final double larghezza;
     private final Partita partita;
     private final EventiCorridoio eventi;
     private final UscitaCorridoio uscita;
@@ -49,18 +52,19 @@ public class VistaCorridoio {
         double altezza = dimensioni.altezza();
         ArrivoNelCorridoio arrivo = ingresso.arrivo();
         double posizioneEroe = ingresso.posizioneEroe();
+        this.larghezza = larghezza;
         this.partita = partita;
         this.eventi = eventi;
         this.arrivo = arrivo;
         this.barraSuperiore = new BarraSuperioreCorridoio(
-                () -> eventi.salvataggioRichiesto().run(),
-                () -> eventi.caricamentoRichiesto().run(),
+                eventi.salvataggioRichiesto(),
+                eventi.caricamentoRichiesto(),
                 eventi.menuRichiesto());
         this.uscita = new UscitaCorridoio(larghezza, Y_PIEDI_EROE);
         this.scalaDiscesa = new ScalaDiscesaCorridoio(Y_PIEDI_EROE);
         this.entitaCentrale = new EntitaCorridoio(larghezza, Y_PIEDI_EROE + SCARTO_PAVIMENTO_ENTITA);
         this.eroe = new EroeNelCorridoio(larghezza, Y_PIEDI_EROE,
-                posizioneIniziale(larghezza, arrivo, posizioneEroe), () -> eventi.eroeSpostato().run());
+                posizioneIniziale(larghezza, arrivo, posizioneEroe), eventi.eroeSpostato());
         if (arrivo == ArrivoNelCorridoio.DA_SOTTO || arrivo == ArrivoNelCorridoio.DA_SOPRA) {
             this.eroe.nascondi();
         }
@@ -134,6 +138,14 @@ public class VistaCorridoio {
 
     public double getCentroEntita() {
         return this.entitaCentrale.getCentroX();
+    }
+
+    public boolean isEroeAllUscita() {
+        return this.eroe.getPosizione() >= this.larghezza - MARGINE_USCITA_DESTRA;
+    }
+
+    public boolean isEroeAllaScala() {
+        return this.eroe.getPosizione() <= LIMITE_SCALA_DISCESA;
     }
 
     public boolean isConfermaVisibile() {

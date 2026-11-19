@@ -20,7 +20,6 @@ public class PalcoBattaglia {
     private static final int SCALA_TORCE = 4;
     private static final int SCALA_EROE = 4;
     private static final String TORCIA = "torcia";
-    private static final String SPRITE_EROE = "knight_m_idle_anim";
     private static final double[] POSIZIONI_TORCE = {0.115, 0.885};
     private static final double SCARTO_BASE_TORCIA = 14;
     private static final double POSIZIONE_NEMICO = 0.75;
@@ -44,7 +43,7 @@ public class PalcoBattaglia {
         aggiungiTorce(larghezza);
         this.spriteNemico = new SpriteAnimato(PixelArt.PERSONAGGI, aspettoNemico.getPrefisso(),
                 aspettoNemico.getScala());
-        this.spriteEroe = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_EROE, SCALA_EROE);
+        this.spriteEroe = new SpriteAnimato(PixelArt.PERSONAGGI, PixelArt.EROE_FERMO, SCALA_EROE);
         aggiungiCombattente(this.spriteNemico, larghezza * POSIZIONE_NEMICO, VERSO_SINISTRA);
         aggiungiCombattente(this.spriteEroe, larghezza * POSIZIONE_EROE, VERSO_DESTRA);
         this.schedaNemico = SchedaCombattente.perAvversario(nemico, Tema.ROSSO);

@@ -16,7 +16,6 @@ import java.util.Set;
 public class EroeNelCorridoio {
 
     private static final int SCALA = 3;
-    private static final String SPRITE_FERMO = "knight_m_idle_anim";
     private static final String SPRITE_CORSA = "knight_m_run_anim";
     private static final double MARGINE_CAMMINO = 20;
     private static final double VELOCITA = 220;
@@ -42,7 +41,7 @@ public class EroeNelCorridoio {
 
     private final double larghezzaScena;
     private final Runnable dopoOgniSpostamento;
-    private final SpriteAnimato spriteFermo = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_FERMO, SCALA);
+    private final SpriteAnimato spriteFermo = new SpriteAnimato(PixelArt.PERSONAGGI, PixelArt.EROE_FERMO, SCALA);
     private final SpriteAnimato spriteCorsa = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_CORSA, SCALA);
     private final StackPane postazione = new StackPane(this.spriteFermo, this.spriteCorsa);
     private final Set<KeyCode> tastiPremuti = EnumSet.noneOf(KeyCode.class);

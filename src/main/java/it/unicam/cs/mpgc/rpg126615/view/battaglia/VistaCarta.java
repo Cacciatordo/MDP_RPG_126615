@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.view.battaglia;
 
 import it.unicam.cs.mpgc.rpg126615.model.carta.Carta;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -58,12 +59,12 @@ public class VistaCarta {
                 creaDescrizione(descrizione));
         this.corpo.setAlignment(Pos.TOP_CENTER);
         this.corpo.setPadding(new Insets(MARGINE));
-        blocca(this.corpo, LARGHEZZA, ALTEZZA);
+        Componenti.bloccaDimensione(this.corpo, LARGHEZZA, ALTEZZA);
         this.corpo.setStyle(this.stileNormale);
 
         this.contenitore = new StackPane(this.corpo);
         this.contenitore.setAlignment(Pos.BOTTOM_CENTER);
-        blocca(this.contenitore, LARGHEZZA, ALTEZZA + SOLLEVAMENTO);
+        Componenti.bloccaDimensione(this.contenitore, LARGHEZZA, ALTEZZA + SOLLEVAMENTO);
         Tooltip suggerimento = new Tooltip(descrizione);
         suggerimento.setShowDelay(Duration.millis(50));
         Tooltip.install(this.contenitore, suggerimento);
@@ -108,7 +109,7 @@ public class VistaCarta {
 
     private static StackPane creaIllustrazione(int costoPa, String icona, String colore) {
         StackPane illustrazione = new StackPane();
-        blocca(illustrazione, LARGHEZZA_CONTENUTO, ALTEZZA_ILLUSTRAZIONE);
+        Componenti.bloccaDimensione(illustrazione, LARGHEZZA_CONTENUTO, ALTEZZA_ILLUSTRAZIONE);
         illustrazione.setBackground(new Background(new BackgroundFill(
                 Color.web(colore, OPACITA_SFONDO_ILLUSTRAZIONE), CornerRadii.EMPTY, Insets.EMPTY)));
 
@@ -149,19 +150,11 @@ public class VistaCarta {
     }
 
     private static Label creaEtichetta(String testo, int dimensione, String colore) {
-        Label etichetta = new Label(testo);
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
+        Label etichetta = Componenti.etichetta(testo, dimensione, colore);
         etichetta.setWrapText(true);
         etichetta.setTextAlignment(TextAlignment.CENTER);
         etichetta.setMaxWidth(LARGHEZZA_CONTENUTO);
         return etichetta;
-    }
-
-    private static void blocca(Region regione, double larghezza, double altezza) {
-        regione.setMinSize(larghezza, altezza);
-        regione.setPrefSize(larghezza, altezza);
-        regione.setMaxSize(larghezza, altezza);
     }
 
     private static String stileCornice(String colore) {

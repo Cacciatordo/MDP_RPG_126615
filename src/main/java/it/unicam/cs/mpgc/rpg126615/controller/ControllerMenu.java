@@ -28,8 +28,8 @@ public class ControllerMenu {
         this.suNuovaPartita = suNuovaPartita;
         this.suPartitaCaricata = suPartitaCaricata;
         this.vista = new VistaIniziale(dimensioni, new AzioniMenu(
-                (nome, testoPiani) -> iniziaNuovaPartita(nome, testoPiani),
-                () -> scegliPartitaDaCaricare()));
+                this::iniziaNuovaPartita,
+                this::scegliPartitaDaCaricare));
     }
 
     public Scene getScena() {
@@ -47,7 +47,7 @@ public class ControllerMenu {
     }
 
     private void scegliPartitaDaCaricare() {
-        this.dialoghi.scegliDaCaricare().ifPresent(dati -> this.suPartitaCaricata.accept(dati));
+        this.dialoghi.scegliDaCaricare().ifPresent(this.suPartitaCaricata);
     }
 
     private static OptionalInt leggiNumeroPiani(String testoInserito) {

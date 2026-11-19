@@ -1,25 +1,21 @@
 package it.unicam.cs.mpgc.rpg126615.view.finale;
 
+import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.PixelArt;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.ScenarioCorridoio;
 import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpriteAnimato;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
-import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 
 public class VistaFineGioco {
 
-    private static final String SPRITE_EROE = "knight_m_idle_anim";
     private static final int SCALA_EROE = 3;
     private static final double LARGHEZZA_RIQUADRO = 420;
     private static final double PADDING_RIQUADRO = 18;
@@ -55,7 +51,7 @@ public class VistaFineGioco {
         contenuto.setAlignment(Pos.TOP_CENTER);
         contenuto.setPadding(new Insets(PADDING_SCHERMATA));
 
-        SpriteAnimato eroe = new SpriteAnimato(PixelArt.PERSONAGGI, SPRITE_EROE, SCALA_EROE);
+        SpriteAnimato eroe = new SpriteAnimato(PixelArt.PERSONAGGI, PixelArt.EROE_FERMO, SCALA_EROE);
         eroe.avvia();
         StackPane.setAlignment(eroe, Pos.BOTTOM_CENTER);
         StackPane.setMargin(eroe, new Insets(0, 0, DISTANZA_EROE_DAL_FONDO, 0));
@@ -70,24 +66,12 @@ public class VistaFineGioco {
     }
 
     private static Label creaEtichetta(String testo, int dimensione, String colore) {
-        Label etichetta = new Label(testo);
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        etichetta.setWrapText(true);
-        etichetta.setTextAlignment(TextAlignment.CENTER);
-        etichetta.setAlignment(Pos.CENTER);
-        etichetta.setMaxWidth(LARGHEZZA_RIQUADRO - 2 * PADDING_RIQUADRO);
-        return etichetta;
+        return Componenti.etichettaCentrata(testo, dimensione, colore, LARGHEZZA_RIQUADRO - 2 * PADDING_RIQUADRO);
     }
 
     private static Button creaBottoneMenu(Runnable suMenu) {
         Button bottone = new Button("🏠 TORNA AL MENU PRINCIPALE");
-        String normale = stileBottone(Tema.ORO);
-        String sopra = stileBottone(ORO_SOPRA);
-        bottone.setStyle(normale);
-        bottone.setCursor(Cursor.HAND);
-        bottone.setOnMouseEntered(evento -> bottone.setStyle(sopra));
-        bottone.setOnMouseExited(evento -> bottone.setStyle(normale));
+        Componenti.aggiungiEffettoSopra(bottone, stileBottone(Tema.ORO), stileBottone(ORO_SOPRA));
         bottone.setOnAction(evento -> suMenu.run());
         return bottone;
     }

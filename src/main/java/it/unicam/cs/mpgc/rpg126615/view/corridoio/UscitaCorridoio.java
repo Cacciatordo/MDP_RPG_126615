@@ -30,7 +30,8 @@ public class UscitaCorridoio {
     private static final double DISTANZA_SCRITTA_SALITA = 24;
     private static final String TESTO_BLOCCATA = "BLOCCATA";
     private static final String TESTO_SALI = "SALI ▲";
-    private static final String DESCRIZIONE_BLOCCATA = "Uscita verso il piano superiore: sconfiggi il pericolo per aprirla!";
+    private static final String DESCRIZIONE_BLOCCATA =
+            "Uscita verso il piano superiore: sconfiggi il pericolo per aprirla!";
     private static final String DESCRIZIONE_SALI = "Le scale portano al piano superiore.";
     private static final String STILE_SUGGERIMENTO = "-fx-font-family: '" + Tema.FONT + "'; -fx-font-size: 9px;";
 

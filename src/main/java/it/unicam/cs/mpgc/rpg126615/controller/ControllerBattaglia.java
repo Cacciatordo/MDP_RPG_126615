@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126615.controller;
 
-import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
+import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.view.battaglia.AzioniBattaglia;
 import it.unicam.cs.mpgc.rpg126615.view.battaglia.VistaBattaglia;
@@ -20,10 +20,10 @@ public class ControllerBattaglia {
         this.battaglia = partita.getBattaglia().orElseThrow();
         this.vista = new VistaBattaglia(dimensioni, this.battaglia, partita.getNumeroPianoCorrente(),
                 new AzioniBattaglia(
-                        () -> attacca(),
-                        () -> terminaTurno(),
-                        indice -> giocaCarta(indice),
-                        () -> esci()));
+                        this::attacca,
+                        this::terminaTurno,
+                        this::giocaCarta,
+                        this::esci));
     }
 
     public Scene getScena() {

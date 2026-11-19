@@ -71,7 +71,7 @@ public class FilaCarte {
         List<Carta> mano = this.giocatore.getMano().getCarte();
         for (int indice = 0; indice < mano.size(); indice++) {
             Carta carta = mano.get(indice);
-            Node nodo = new VistaCarta(carta, isGiocabile(carta)).getNodo();
+            Node nodo = new VistaCarta(carta, this.battaglia.isCartaGiocabile(carta)).getNodo();
             int indiceCarta = indice;
             nodo.setCursor(Cursor.HAND);
             nodo.setOnMouseClicked(evento -> this.suCartaScelta.accept(indiceCarta));
@@ -105,7 +105,7 @@ public class FilaCarte {
     private static String descriviScarti(List<Carta> scarti) {
         Map<String, Integer> perNome = new LinkedHashMap<>();
         for (Carta carta : scarti) {
-            perNome.merge(carta.getNome(), 1, (a, b) -> a + b);
+            perNome.merge(carta.getNome(), 1, Integer::sum);
         }
         StringBuilder descrizione = new StringBuilder();
         for (Map.Entry<String, Integer> voce : perNome.entrySet()) {
@@ -148,19 +148,12 @@ public class FilaCarte {
 
     private Node creaCartaAttacco() {
         boolean usato = this.battaglia.isAttaccoEseguitoNelTurno();
-        boolean giocabile = !this.battaglia.isFinita() && !usato
-                && this.giocatore.getPuntiAzione() >= Battaglia.COSTO_PA_ATTACCO_BASE;
+        boolean giocabile = this.battaglia.isAttaccoBaseGiocabile();
         String descrizione = usato ? TESTO_ATTACCO_USATO : TESTO_ATTACCO;
         Node nodo = new VistaCarta(StileCarta.COLORE_ATTACCO_BASE, StileCarta.ICONA_ATTACCO_BASE,
                 Battaglia.COSTO_PA_ATTACCO_BASE, "Attacco Base", descrizione, giocabile).getNodo();
         nodo.setCursor(Cursor.HAND);
         nodo.setOnMouseClicked(evento -> this.suAttacco.run());
         return nodo;
-    }
-
-    private boolean isGiocabile(Carta carta) {
-        return !this.battaglia.isFinita()
-                && carta.isGiocabile(this.giocatore.getMano())
-                && this.giocatore.getPuntiAzione() >= carta.getCostoPA();
     }
 }

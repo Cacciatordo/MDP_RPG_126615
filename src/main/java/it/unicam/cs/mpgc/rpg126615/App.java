@@ -6,6 +6,7 @@ import it.unicam.cs.mpgc.rpg126615.controller.ControllerMenu;
 import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.persistenza.ArchivioSalvataggiFile;
 import it.unicam.cs.mpgc.rpg126615.model.persistenza.DatiSalvataggio;
+import it.unicam.cs.mpgc.rpg126615.view.DialoghiApplicazione;
 import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
 import it.unicam.cs.mpgc.rpg126615.view.corridoio.ArrivoNelCorridoio;
 import it.unicam.cs.mpgc.rpg126615.view.corridoio.AzioniCorridoio;
@@ -14,8 +15,6 @@ import it.unicam.cs.mpgc.rpg126615.view.corridoio.IngressoNelCorridoio;
 import it.unicam.cs.mpgc.rpg126615.view.finale.RiepilogoFinale;
 import it.unicam.cs.mpgc.rpg126615.view.finale.VistaFineGioco;
 import javafx.application.Application;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
 import java.nio.file.Path;
@@ -28,12 +27,13 @@ public class App extends Application {
             new DimensioniFinestra(LARGHEZZA_FINESTRA, ALTEZZA_FINESTRA);
     private static final String TITOLO_FINESTRA = "Emberfall";
     private static final String CARTELLA_SALVATAGGI = "salvataggi";
+    private static final double NESSUNA_POSIZIONE = 0;
 
     private Stage finestra;
     private Partita partita;
-    private double posizioneEroe;
     private final DialoghiSalvataggio dialoghi = new DialoghiSalvataggio(
             new ArchivioSalvataggiFile(Path.of(CARTELLA_SALVATAGGI)));
+    private final DialoghiApplicazione dialoghiApplicazione = new DialoghiApplicazione();
 
     @Override
     public void start(Stage primaryStage) {
@@ -46,8 +46,8 @@ public class App extends Application {
 
     private void mostraMenu() {
         ControllerMenu controller = new ControllerMenu(DIMENSIONI_FINESTRA, this.dialoghi,
-                (nome, piani) -> iniziaNuovaPartita(nome, piani),
-                dati -> caricaPartita(dati));
+                this::iniziaNuovaPartita,
+                this::caricaPartita);
         this.finestra.setScene(controller.getScena());
     }
 
@@ -58,25 +58,18 @@ public class App extends Application {
 
     private void caricaPartita(DatiSalvataggio dati) {
         try {
-            Partita caricata = Partita.nuova("", dati.piani().size(), dati.semeTorre());
-            caricata.ripristina(dati);
-            this.partita = caricata;
+            this.partita = Partita.daSalvataggio(dati);
         } catch (IllegalArgumentException errore) {
-            new Alert(Alert.AlertType.ERROR, "Impossibile caricare il salvataggio: " + errore.getMessage())
-                    .showAndWait();
+            this.dialoghiApplicazione.mostraErroreCaricamento(errore.getMessage());
             return;
         }
         mostraCorridoio();
     }
 
     private void tornaAlMenu() {
-        Alert conferma = new Alert(Alert.AlertType.CONFIRMATION,
-                "I progressi non salvati andranno persi.", ButtonType.OK, ButtonType.CANCEL);
-        conferma.setTitle("Menu Principale");
-        conferma.setHeaderText("Tornare al menu iniziale?");
-        conferma.showAndWait()
-                .filter(risposta -> risposta == ButtonType.OK)
-                .ifPresent(risposta -> mostraMenu());
+        if (this.dialoghiApplicazione.confermaRitornoAlMenu()) {
+            mostraMenu();
+        }
     }
 
     private void mostraCorridoio() {
@@ -84,32 +77,32 @@ public class App extends Application {
     }
 
     private void mostraCorridoio(ArrivoNelCorridoio arrivo) {
+        mostraCorridoio(new IngressoNelCorridoio(arrivo, NESSUNA_POSIZIONE));
+    }
+
+    private void mostraCorridoio(IngressoNelCorridoio ingresso) {
         AzioniCorridoio azioni = new AzioniCorridoio(
-                posizione -> mostraBattaglia(posizione),
-                () -> vaiAlProssimoPiano(),
-                () -> vaiAlPianoPrecedente(),
-                () -> tornaAlMenu(),
-                dati -> caricaPartita(dati));
+                this::mostraBattaglia,
+                this::vaiAlProssimoPiano,
+                this::vaiAlPianoPrecedente,
+                this::tornaAlMenu,
+                this::caricaPartita);
         ControllerCorridoio controller = new ControllerCorridoio(DIMENSIONI_FINESTRA, this.partita, this.dialoghi,
-                azioni, new IngressoNelCorridoio(arrivo, this.posizioneEroe));
+                azioni, ingresso);
         this.finestra.setScene(controller.getScena());
     }
 
-    private void mostraBattaglia(double posizione) {
-        this.posizioneEroe = posizione;
+    private void mostraBattaglia(double posizioneEroe) {
         ControllerBattaglia controller = new ControllerBattaglia(DIMENSIONI_FINESTRA, this.partita,
-                () -> tornaDallaBattaglia());
+                () -> tornaDallaBattaglia(posizioneEroe));
         this.finestra.setScene(controller.getScena());
     }
 
-    private void tornaDallaBattaglia() {
-        if (this.partita.isGiocatoreSconfitto()) {
-            this.partita.ritiratiDopoSconfitta();
-            mostraCorridoio();
-        } else if (this.partita.isPianoSuperato() && !this.partita.haProssimoPiano()) {
+    private void tornaDallaBattaglia(double posizioneEroe) {
+        if (this.partita.isTorreCompletata()) {
             mostraFineGioco();
         } else if (this.partita.isPianoSuperato()) {
-            mostraCorridoio(ArrivoNelCorridoio.DOPO_SCONTRO);
+            mostraCorridoio(new IngressoNelCorridoio(ArrivoNelCorridoio.DOPO_SCONTRO, posizioneEroe));
         } else {
             mostraCorridoio();
         }
@@ -118,7 +111,7 @@ public class App extends Application {
     private void mostraFineGioco() {
         RiepilogoFinale riepilogo = new RiepilogoFinale(this.partita.getGiocatore().getNome(),
                 this.partita.getGiocatore().getLivello(), this.partita.getTotalePiani());
-        VistaFineGioco vista = new VistaFineGioco(DIMENSIONI_FINESTRA, riepilogo, () -> mostraMenu());
+        VistaFineGioco vista = new VistaFineGioco(DIMENSIONI_FINESTRA, riepilogo, this::mostraMenu);
         this.finestra.setScene(vista.getScena());
     }
 

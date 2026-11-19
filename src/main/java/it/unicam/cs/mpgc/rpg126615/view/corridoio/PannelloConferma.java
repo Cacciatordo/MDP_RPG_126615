@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126615.view.corridoio;
 
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
 import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -10,8 +11,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
 public class PannelloConferma {
@@ -30,8 +29,8 @@ public class PannelloConferma {
             + "-fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 4 10;";
 
     private final StackPane radice = new StackPane();
-    private final Label titolo = creaEtichetta(DIMENSIONE_TITOLO, Tema.ORO);
-    private final Label testo = creaEtichetta(DIMENSIONE_TESTO, Tema.TESTO);
+    private final Label titolo = Componenti.etichetta(DIMENSIONE_TITOLO, Tema.ORO);
+    private final Label testo = Componenti.etichetta(DIMENSIONE_TESTO, Tema.TESTO);
     private final Button bottoneConferma = creaBottone();
     private final Button bottoneAnnulla = creaBottone();
     private Runnable azioneConferma;
@@ -77,13 +76,6 @@ public class PannelloConferma {
 
     private void nascondi() {
         this.radice.setVisible(false);
-    }
-
-    private static Label creaEtichetta(int dimensione, String colore) {
-        Label etichetta = new Label();
-        etichetta.setFont(Font.font(Tema.FONT, dimensione));
-        etichetta.setTextFill(Color.web(colore));
-        return etichetta;
     }
 
     private static Button creaBottone() {

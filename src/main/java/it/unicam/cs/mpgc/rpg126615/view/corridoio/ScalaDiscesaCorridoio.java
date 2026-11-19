@@ -57,7 +57,7 @@ public class ScalaDiscesaCorridoio {
     }
 
     public void aggiorna(Partita partita) {
-        boolean visibile = partita.getNumeroPianoCorrente() > 1;
+        boolean visibile = partita.haPianoPrecedente();
         this.immagine.setVisible(visibile);
         this.scritta.setVisible(visibile);
     }

@@ -31,6 +31,14 @@ public class Nemico extends EntitaAstratta {
         return esperienzaData;
     }
 
+    public void impostaSconfitto(boolean sconfitto) {
+        if (sconfitto) {
+            subisciDanno(getHp());
+        } else {
+            cura(getHpMax());
+        }
+    }
+
     @Override
     public int attacca(Combattente bersaglio) {
         int danno = Math.max(0, getAttacco() - bersaglio.getDifesa());

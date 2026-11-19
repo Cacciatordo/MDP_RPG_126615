@@ -1,18 +1,18 @@
 package it.unicam.cs.mpgc.rpg126615.view.battaglia;
 
-import it.unicam.cs.mpgc.rpg126615.model.gioco.Partita;
 import it.unicam.cs.mpgc.rpg126615.model.battaglia.Battaglia;
 import it.unicam.cs.mpgc.rpg126615.model.entita.Combattente;
-import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpritePersonaggio;
-import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
+import it.unicam.cs.mpgc.rpg126615.model.entita.Giocatore;
 import it.unicam.cs.mpgc.rpg126615.view.AspettoAvversario;
 import it.unicam.cs.mpgc.rpg126615.view.DimensioniFinestra;
+import it.unicam.cs.mpgc.rpg126615.view.pixelart.SpritePersonaggio;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Componenti;
+import it.unicam.cs.mpgc.rpg126615.view.stile.Tema;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.Cursor;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -54,8 +54,8 @@ public class VistaBattaglia {
         this.palco = new PalcoBattaglia(larghezza - 2 * MARGINE, battaglia.getGiocatore(), nemico,
                 aspettoDelNemico(nemico, numeroPiano));
         this.filaCarte = new FilaCarte(larghezza - 2 * MARGINE_CARTE, battaglia,
-                indice -> azioni.giocaCarta().accept(indice), () -> azioni.attacca().run());
-        this.comandi = new BarraComandiBattaglia(larghezza, battaglia.getGiocatore(), () -> azioni.terminaTurno().run());
+                indice -> azioni.giocaCarta().accept(indice), azioni.attacca());
+        this.comandi = new BarraComandiBattaglia(larghezza, battaglia.getGiocatore(), azioni.terminaTurno());
         this.registro = new RegistroBattaglia(larghezza - 2 * MARGINE);
         this.scena = creaScena(dimensioni, creaInterfaccia(larghezza, nemico.getNome()));
 
@@ -125,11 +125,13 @@ public class VistaBattaglia {
     public void mostraVittoria(boolean haProssimoPiano) {
         if (haProssimoPiano) {
             this.registro.aggiungi("Hai sconfitto il nemico! Clicca sul pulsante qui sotto per continuare.\n");
-            Button bottone = creaBottoneEsito("★ VITTORIA! TORNA AL CORRIDOIO ►", Tema.VERDE, VERDE_CHIARO, Tema.SFONDO);
+            Button bottone = creaBottoneEsito("★ VITTORIA! TORNA AL CORRIDOIO ►",
+                    Tema.VERDE, VERDE_CHIARO, Tema.SFONDO);
             bottone.setOnAction(e -> this.azioni.esci().run());
             this.filaCarte.mostraEsito(bottone);
         } else {
-            this.registro.aggiungi("Il boss finale è caduto! Clicca sul pulsante qui sotto per concludere la tua ascesa.\n");
+            this.registro.aggiungi(
+                    "Il boss finale è caduto! Clicca sul pulsante qui sotto per concludere la tua ascesa.\n");
             Button bottone = creaBottoneEsito("👑 HAI CONQUISTATO LA TORRE! ►", Tema.ORO, ORO_CHIARO, Tema.SFONDO);
             bottone.setOnAction(e -> this.azioni.esci().run());
             this.filaCarte.mostraEsito(bottone);
@@ -138,7 +140,7 @@ public class VistaBattaglia {
 
     public void mostraSconfitta() {
         this.registro.aggiungi("Sei caduto in battaglia! Clicca sul pulsante qui sotto per ritirarti.\n");
-        Button bottone = creaBottoneEsito("☠ RITIRATI ALLA FONTANA (-" + Partita.PENALITA_XP_SCONFITTA + " XP)",
+        Button bottone = creaBottoneEsito("☠ RITIRATI ALLA FONTANA (-" + Giocatore.PENALITA_XP_SCONFITTA + " XP)",
                 ROSSO_SCURO, Tema.ROSSO, Tema.TESTO);
         bottone.setOnAction(e -> this.azioni.esci().run());
         this.filaCarte.mostraEsito(bottone);
@@ -146,11 +148,10 @@ public class VistaBattaglia {
 
     private static Button creaBottoneEsito(String testo, String sfondo, String sfondoSopra, String coloreTesto) {
         Button bottone = new Button(testo);
-        bottone.setStyle(stileBottoneEsito(sfondo, coloreTesto, Tema.BORDO));
-        bottone.setCursor(Cursor.HAND);
+        Componenti.aggiungiEffettoSopra(bottone,
+                stileBottoneEsito(sfondo, coloreTesto, Tema.BORDO),
+                stileBottoneEsito(sfondoSopra, coloreTesto, Tema.ORO));
         bottone.setFocusTraversable(false);
-        bottone.setOnMouseEntered(e -> bottone.setStyle(stileBottoneEsito(sfondoSopra, coloreTesto, Tema.ORO)));
-        bottone.setOnMouseExited(e -> bottone.setStyle(stileBottoneEsito(sfondo, coloreTesto, Tema.BORDO)));
         return bottone;
     }
 

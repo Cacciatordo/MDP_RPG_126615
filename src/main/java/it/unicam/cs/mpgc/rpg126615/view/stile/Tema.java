@@ -13,6 +13,7 @@ public final class Tema {
     public static final String ERRORE = "#ff6b6b";
     public static final String SFONDO = "#0a0608";
     public static final String PANNELLO = "#1c1410";
+    public static final String PANNELLO_SOPRA = "#3d2a1e";
     public static final String BORDO = "#6b6058";
 
     public static final String TESTO = "#f5ede0";
@@ -21,6 +22,11 @@ public final class Tema {
     public static final String ORO = "#fbbf24";
     public static final String VERDE = "#22c55e";
     public static final String ROSSO = "#cc2200";
+
+    public static final String ESPERIENZA = "#a855f7";
+    public static final String DIFESA = "#f97316";
+    public static final String AVVISO = "#4a1d6e";
+    public static final String AVVISO_GRAVE = "#7f1d1d";
 
     private Tema() {
     }
